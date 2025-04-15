@@ -1,0 +1,4 @@
+拓展包请放在 文档/My Games/Terraria/tModLoader/Mods/PointShopExtender 下
+第一次启动会创建示例文件并弹出文件资源管理器到那个页面
+在搞清楚编写格式前请妥善保管示例文件
+如果不小心丢失了可以删除PointShopExtender以重新创建

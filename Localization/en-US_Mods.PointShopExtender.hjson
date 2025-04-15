@@ -1,0 +1,20 @@
+Environments: {
+	Torch: 火把
+	Hammer: 锤子
+	TerraBlade: 泰拉刃
+	VortexTower: 星璇塔
+	AbyssLayer1: 深渊一层
+}
+
+UnlockCondition: {
+	DownedMoonLord: {
+		DisplayName: 击败月球领主
+		DescriptionName: ""
+		Description: 需要击败月球领主
+	}
+
+	DownedDevourerofGodsHead: {
+		DisplayName: 击败神明吞噬者
+		Description: 需要击败神明吞噬者
+	}
+}

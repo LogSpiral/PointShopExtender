@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- Import tModLoader mod properties -->
+	<Import Project="..\tModLoader.targets" />
+	
+	<PropertyGroup>
+		<AssemblyName>PointShopExtender</AssemblyName>
+		<LangVersion>preview</LangVersion>
+	</PropertyGroup>
+	<!-- General -->
+	<ItemGroup>
+		<PackageReference Include="Solaestas.tModLoader.ModBuilder" Version="1.6.1" />
+		<PackageReference Include="YamlDotNet" Version="16.3.0" />
+	</ItemGroup>	  
+
+	<!-- References -->
+	<ItemGroup>
+		<AdditionalFiles Include="**/*.yaml;**/*.yml;**/*.zip" Exclude="bin/**/*;obj/**/*" Pack="true" ModPath="%(Identity)" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="Localization\zh-Hans_Mods.PointShopExtender.hjson" />
+	</ItemGroup>
+	
+</Project>
