@@ -21,5 +21,9 @@
 	<ItemGroup>
 	  <None Remove="Localization\zh-Hans_Mods.PointShopExtender.hjson" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\PointShop\PointShop.csproj" />
+	  <ProjectReference Include="..\SilkyUIFramework\SilkyUIFramework.csproj" />
+	</ItemGroup>
 	
 </Project>

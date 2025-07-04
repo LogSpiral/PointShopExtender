@@ -1,6 +1,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
+using PointShop;
+using PointShopExtender.PacketData;
+using PointShopExtender.PacketManager;
 using ReLogic.Content;
 using System;
 using System.Collections.Generic;
@@ -12,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.GameInput;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
@@ -24,10 +28,28 @@ namespace PointShopExtender
     // Please read https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-Guide#mod-skeleton-contents for more information about the various files in a mod.
     public class PointShopExtender : Mod
     {
+        public static PointShopExtender Instance { get; private set; }
+        public static PointShop.PointShop PointShopMod { get; private set; }
+
+        public override void Load()
+        {
+            Instance = this;
+            PointShopMod = PointShop.PointShop.Instance;
+            base.Load();
+        }
     }
-    public class ExtenderSystem : ModSystem
+    public class PointShopExtenderSystem : ModSystem
     {
-        public static HashSet<string> DownedBosses = [];
+        public static LocalizedText GetLocalization(string suffix) => Language.GetText($"Mods.{nameof(PointShopExtender)}.{suffix}");
+        public static string GetLocalizationText(string suffix) => GetLocalization(suffix).Value;
+
+
+        public static HashSet<ExtensionPack> ExtensionPacks { get; } = [];
+
+        #region 管理模组boss击败情况
+
+        // TODO 从boss列表中获取boss击败情况
+        public static HashSet<string> DownedBosses { get; } = [];
         public override void LoadWorldData(TagCompound tag)
         {
             if (tag.ContainsKey("DownedBosses"))
@@ -45,11 +67,20 @@ namespace PointShopExtender
             tag["DownedBosses"] = DownedBosses.ToArray();
             base.SaveWorldData(tag);
         }
+        #endregion
+
+        #region 杂项
         public static IDeserializer YamlDeserializer { get; } = new DeserializerBuilder().Build();
+
+        public static ISerializer YamlSerializer { get; } = new SerializerBuilder().Build();
+
+        public static ModKeybind ShowManagerKeyBind { get; private set; }
+
         public override void Load()
         {
-            if (!ModLoader.TryGetMod("PointShop", out var pointShop))
-                return;
+            ShowManagerKeyBind = new ModKeybind(Mod, "ShowPacketMakerUI", "P");
+            KeybindLoader.RegisterKeybind(ShowManagerKeyBind);
+
             MonoModHooks.Add(typeof(LocalizationLoader).GetMethod("LoadTranslations", BindingFlags.Static | BindingFlags.NonPublic), LocalziationModify);
             base.Load();
         }
@@ -81,65 +112,59 @@ namespace PointShopExtender
 
             return result;
         }
-        public override void PostSetupContent()
+        #endregion
+
+        #region 加载拓展包
+
+        static void DecompressExamplePack()
         {
-            if (!ModLoader.TryGetMod("PointShop", out var pointShop))
-                return;
-
-            //var assembly = pointShop.GetType().Assembly;
-            //var allTypes = assembly.GetTypes();
-            //Type systemType = allTypes[24];
-            //var lst = systemType.GetField("_environments", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
-
-
             var mainPath = Path.Combine(Main.SavePath, "Mods", nameof(PointShopExtender));
-
             if (!Directory.Exists(mainPath))
             {
                 Directory.CreateDirectory(mainPath);
 
                 Utils.OpenFolder(mainPath);
 
-                var stream = Mod.GetFileStream("ExampleShopPack.zip");
+                var stream = PointShopExtender.Instance.GetFileStream("ExampleShopPack.zip");
                 ZipFile.ExtractToDirectory(stream, Path.Combine(mainPath, "ExampleShopPack"), Encoding.GetEncoding("GBK"));
                 stream.Close();
             }
-
-            foreach (var dir in Directory.GetDirectories(mainPath))
-            {
-                var subPath = Path.Combine(dir, "Conditions");
-                if (!Directory.Exists(subPath))
-                    Directory.CreateDirectory(subPath);
-                else
-                    foreach (var file in Directory.GetFiles(subPath, "*.yaml"))
-                    {
-                        ConditionMetaData metaData = YamlDeserializer.Deserialize<ConditionMetaData>(File.ReadAllText(file));
-                        metaData.Register(pointShop, Mod, file);
-                    }
-
-                subPath = Path.Combine(dir, "Environments");
-                if (!Directory.Exists(subPath))
-                    Directory.CreateDirectory(subPath);
-                else
-                    foreach (var file in Directory.GetFiles(subPath, "*.yaml"))
-                    {
-                        EnvironmentMetaData metaData = YamlDeserializer.Deserialize<EnvironmentMetaData>(File.ReadAllText(file));
-                        metaData.Register(pointShop, Mod, file);
-                    }
-                subPath = Path.Combine(dir, "Shops");
-                if (!Directory.Exists(subPath))
-                    Directory.CreateDirectory(subPath);
-                else
-                    foreach (var file in Directory.GetFiles(subPath, "*.yaml"))
-                        pointShop.Call("AddShopItemByFile", Mod, File.ReadAllText(file));
-            }
-
-
-
-
-            base.PostSetupContent();
         }
 
+        static void LoadPacks()
+        {
+            var mainPath = Path.Combine(Main.SavePath, "Mods", nameof(PointShopExtender));
+            ExtensionPacks.Clear();
+            foreach (var dir in Directory.GetDirectories(mainPath))
+            {
+                var pack = ExtensionPack.FromDirectory(dir);
+                ExtensionPacks.Add(pack);
+            }
+
+            foreach (var pack in ExtensionPacks)
+                pack.Register();
+        }
+
+        public override void PostSetupContent()
+        {
+            DecompressExamplePack();
+
+            LoadPacks();
+        }
+
+        [Obsolete]
+        static void CopyTest() 
+        {
+            var pack = ExtensionPacks.First();
+            var name = pack.PackName;
+            pack.PackName = "CopyPack";
+            var mainPath = Path.Combine(Main.SavePath, "Mods", nameof(PointShopExtender));
+            pack.Save(mainPath);
+            pack.PackName = name;
+        }
+        #endregion
+
+        #region 拓展包本地化文本
         public static Dictionary<string, string> EnvironmentDisplayNameZH = [];
         public static Dictionary<string, string> ConditionDisplayNameZH = [];
         public static Dictionary<string, string> ConditionDescriptionZH = [];
@@ -147,149 +172,33 @@ namespace PointShopExtender
         public static Dictionary<string, string> EnvironmentDisplayNameEN = [];
         public static Dictionary<string, string> ConditionDisplayNameEN = [];
         public static Dictionary<string, string> ConditionDescriptionEN = [];
-    }
-    public class EnvironmentMetaData
-    {
-        public string Name { get; set; }
-        public string DisplayNameZH { get; set; }
-        public string DisplayNameEN { get; set; }
-        public string Icon { get; set; }
-        public string Condition { get; set; }
-        public int Priority { get; set; }
+        #endregion
 
-        public void Register(Mod pointShop, Mod mod, string filePath)
-        {
-
-            if (!ModContent.RequestIfExists<Texture2D>(Icon, out var icon))
-            {
-                if (!File.Exists(Icon))
-                    Icon = Path.Combine(Path.GetFullPath(filePath)[..^Path.GetFileName(filePath).Length], $"{(Icon == "" ? Name : Icon)}.png");
-                icon = mod.Assets.CreateUntracked<Texture2D>(File.OpenRead(Icon), Icon);
-
-            }
-            ExtenderSystem.EnvironmentDisplayNameZH[Name] = DisplayNameZH ?? Name;
-            ExtenderSystem.EnvironmentDisplayNameEN[Name] = DisplayNameEN ?? Name;
-            Language.GetOrRegister($"Mods.PointShopExtender.Environments.{Name}", () => Name);
-
-            Func<Player, bool> condition;
-            if (Condition == null || Condition.Length == 0)
-                condition = player => true;
-            else
-            {
-                var infos = Condition.Split('|');
-                if (infos.Length != 2)
-                    throw new Exception("条件信息应当包含两部分，第一部分标明条件类型，第二部分表明该类型下的一个具体值，中间用竖线|分隔");
-                switch (infos[0])
-                {
-                    case "VanillaCondition":
-                        {
-                            var vCondition = (Condition)typeof(Condition).GetField(infos[1], BindingFlags.Public | BindingFlags.Static).GetValue(null) ?? throw new Exception("未知的原版条件");
-                            condition = player => vCondition.IsMet();
-                            break;
-                        }
-                    case "DownedBoss":
-                        {
-                            if (ModLoader.HasMod(infos[1].Split('/')[0]))
-                                condition = player => ExtenderSystem.DownedBosses.Contains(infos[1]);
-                            else
-                                condition = player => true;
-                            break;
-                        }
-                    case "InBiome":
-                        {
-                            if (!ModContent.TryFind<ModBiome>(infos[1], out var biome))
-                                condition = player => true;
-                            //throw new Exception("未知的环境");
-                            else
-                                condition = player => player.InModBiome(biome);
-                            break;
-                        }
-                    default:
-                        throw new Exception("未知的条件类型");
-                }
-            }
-
-            pointShop.Call("RegisterGameEnvironment", mod, icon, Name, condition, Priority, Color.White);
-        }
-    }
-    public class ConditionMetaData
-    {
-        public string Name { get; set; }
-        public string DisplayNameZH { get; set; }
-        public string DisplayNameEN { get; set; }
-        public string DescriptionZH { get; set; }
-        public string DescriptionEN { get; set; }
-        public string Icon { get; set; }
-        public string Condition { get; set; }
-
-        public void Register(Mod pointShop, Mod mod, string filePath)
-        {
-            if (!ModContent.RequestIfExists<Texture2D>(Icon, out var icon))
-            {
-                if (!File.Exists(Icon))
-                    Icon = Path.Combine(Path.GetFullPath(filePath)[..^Path.GetFileName(filePath).Length], $"{(Icon == "" ? Name : Icon)}.png");
-                icon = mod.Assets.CreateUntracked<Texture2D>(File.OpenRead(Icon), Icon);
-
-            }
-
-            ExtenderSystem.ConditionDisplayNameZH[Name] = DisplayNameZH ?? Name;
-            ExtenderSystem.ConditionDisplayNameEN[Name] = DisplayNameEN ?? Name;
-            ExtenderSystem.ConditionDescriptionZH[Name] = DescriptionZH ?? "";
-            ExtenderSystem.ConditionDescriptionEN[Name] = DescriptionEN ?? "";
-
-            Language.GetOrRegister($"Mods.PointShopExtender.UnlockCondition.{Name}.DisplayName", () => Name);
-            Language.GetOrRegister($"Mods.PointShopExtender.UnlockCondition.{Name}.Description", () => "");
-
-
-            Func<bool> condition;
-            if (Condition == null || Condition.Length == 0)
-                condition = () => true;
-            else
-            {
-                var infos = Condition.Split('|');
-                if (infos.Length != 2)
-                    throw new Exception("条件信息应当包含两部分，第一部分标明条件类型，第二部分表明该类型下的一个具体值，中间用竖线|分隔");
-                switch (infos[0])
-                {
-                    case "VanillaCondition":
-                        {
-                            var vCondition = (Condition)typeof(Condition).GetField(infos[1], BindingFlags.Public | BindingFlags.Static).GetValue(null) ?? throw new Exception("未知的原版条件");
-                            condition = vCondition.Predicate;
-                            break;
-                        }
-                    case "DownedBoss":
-                        {
-                            if (ModLoader.HasMod(infos[1].Split('/')[0]))
-                                condition = () => ExtenderSystem.DownedBosses.Contains(infos[1]);
-                            else
-                                condition = () => true;
-                            break;
-                        }
-                    case "InBiome":
-                        {
-                            if (!ModContent.TryFind<ModBiome>(infos[1], out var biome))
-                                condition = () => true;
-                            //throw new Exception("未知的环境");
-                            else
-                                condition = () => Main.LocalPlayer.InModBiome(biome);
-                            break;
-                        }
-                    default:
-                        throw new Exception("未知的条件类型");
-                }
-            }
-            pointShop.Call("RegisterCondition", mod, Name, icon, condition);
-
-        }
     }
     public class PointShopExtenderBossManager : GlobalNPC
     {
         public override void OnKill(NPC npc)
         {
-            if (npc.boss && npc.ModNPC is ModNPC modNPC && !ExtenderSystem.DownedBosses.Contains(modNPC.FullName))
-                ExtenderSystem.DownedBosses.Add(modNPC.FullName);
+            if (npc.boss && npc.ModNPC is ModNPC modNPC && !PointShopExtenderSystem.DownedBosses.Contains(modNPC.FullName))
+                PointShopExtenderSystem.DownedBosses.Add(modNPC.FullName);
 
             base.OnKill(npc);
+        }
+    }
+
+
+    public class PointShopExtenderPlayer : ModPlayer
+    {
+        public override void ProcessTriggers(TriggersSet triggersSet)
+        {
+            if (PointShopExtenderSystem.ShowManagerKeyBind.JustPressed)
+            {
+                if (PacketMakerUI.Active)
+                    PacketMakerUI.Close();
+                else
+                    PacketMakerUI.Open();
+            }
+            base.ProcessTriggers(triggersSet);
         }
     }
 }

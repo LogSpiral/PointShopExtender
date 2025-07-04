@@ -18,3 +18,24 @@ UnlockCondition: {
 		Description: 需要击败神明吞噬者
 	}
 }
+
+PacketMakerUI: {
+	CreateNew: Create New...
+	Shop: New Shop
+	UnlockCondition: New Unlock Condition
+	Environment: New Environment
+	UnknownVanillaCondition: Unknown vanilla condition
+	UnknownConditionType: UnknownConditionType
+	MalformedConditionException: First part tells the type of the condition, second part tells the content, seperated by this sign: |
+	EditContent: Edit Content
+	FileName: File Name
+	DisplayName: Display Name(Zh)
+	DisplayNameEn: Display Name
+	AuthorName: Creator Name
+	Version: Version
+	Description: Description(Zh)
+	DescriptionEn: Description
+	ColorText: Color Hex
+}
+
+Keybinds.ShowPacketMakerUI.DisplayName: Show Packet Manager Interface

@@ -18,3 +18,24 @@ UnlockCondition: {
 		// Description: 需要击败神明吞噬者
 	}
 }
+
+PacketMakerUI: {
+	CreateNew: 新建...
+	Shop: 添加商品
+	UnlockCondition: 添加解锁条件
+	Environment: 添加环境
+	UnknownVanillaCondition: 未知的原版条件
+	UnknownConditionType: 未知的条件类型
+	MalformedConditionException: 条件信息应当包含两部分，第一部分标明条件类型，第二部分表明该类型下的一个具体值，中间用竖线|分隔
+	EditContent: 编辑内容
+	FileName: 文件名
+	DisplayName: 显示名
+	DisplayNameEn: 显示名(英文)
+	AuthorName: 作者名
+	Version: 版本号
+	Description: 描述
+	DescriptionEn: 描述(英文)
+	ColorText: 颜色码
+}
+
+Keybinds.ShowPacketMakerUI.DisplayName: 开启拓展包管理器界面
