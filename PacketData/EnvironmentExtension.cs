@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PointShop.ShopSystem;
+using PointShopExtender.PacketManager;
 using ReLogic.Content;
 using System;
 using System.Globalization;
@@ -83,5 +84,16 @@ public class EnvironmentExtension
         Directory.CreateDirectory(path);
         var content = PointShopExtenderSystem.YamlSerializer.Serialize(this, typeof(EnvironmentExtension));
         File.WriteAllText(Path.Combine(path,Name + ".yaml"), content);
+    }
+
+    public string GetDisplayName()
+    {
+        if (PacketMakerUI.IsChinese && DisplayNameZH is { Length: > 0 } nameZh)
+            return nameZh;
+        else if (DisplayNameEN is { Length: > 0 } nameEn)
+            return nameEn;
+        //else if (Name is { Length: > 0 } nameFile)
+        //return nameFile;
+        return Name;
     }
 }

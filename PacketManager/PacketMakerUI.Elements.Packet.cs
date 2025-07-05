@@ -42,18 +42,15 @@ partial class PacketMakerUI
         }
         public override void OnLeftMouseClick(UIMouseEvent evt)
         {
-            if (CreateNew)
-                Instance.SwitchToPacketInfoPage(pack);
-            else
-            {
-                // TODO 切换是否启用
-                SoundEngine.PlaySound(SoundID.Unlock);
-            }
+            Instance.SwitchToPacketInfoPage(pack);
         }
         public override void OnRightMouseClick(UIMouseEvent evt)
         {
             if (!CreateNew)
-                Instance.SwitchToPacketInfoPage(pack);
+            {
+                // TODO 切换是否启用
+                SoundEngine.PlaySound(SoundID.Unlock);
+            }
         }
         public override void OnMiddleMouseClick(UIMouseEvent evt)
         {
@@ -76,20 +73,20 @@ partial class PacketMakerUI
             Packet = extensionPack;
             BuildPage();
             Image.Texture2D = Packet.Icon;
+            ImagePanel.SetSize(280, 280, 0, 0);
+            ImagePanel.SetTop(4, 0.05f, 0);
+            ImagePanel.SetLeft(10, 0, 0);
         }
         protected override void OnSetIcon(Asset<Texture2D> texture)
         {
             Packet.SetIconAndSave(texture, RootPath);
         }
 
-        protected override void SwitchToContentPage(UIMouseEvent evt, UIView listeningElement)
-        {
-            Instance.SwitchToBridgePage();
-        }
 
         protected override void OnInitializeTextPanel(UIElementGroup textPanel)
         {
-            ContentTextEditablePanel PacketNamePanel = new ("FileName", Packet.PackName);
+            ContentTextEditablePanel PacketNamePanel = new("FileName", Packet.PackName);
+            PacketNamePanel.SetBorderRadius(new(24, 0, 0, 0));
             PacketNamePanel.Join(textPanel);
 
             ContentTextEditablePanel DisplayNamePanel = new("DisplayName", Packet.DisplayName);
@@ -102,7 +99,16 @@ partial class PacketMakerUI
             AuthorNamePanel.Join(textPanel);
 
             ContentTextEditablePanel VersionPanel = new("Version", Packet.PackVersion);
+            //VersionPanel.SetBorderRadius(new(0, 0, 0, 24));
             VersionPanel.Join(textPanel);
+
+            ContentSingleTextPanel EditHintPanel = new("EditContent");
+            EditHintPanel.LeftMouseClick += delegate
+            {
+                Instance.SwitchToBridgePage();
+            };
+            EditHintPanel.SetBorderRadius(new(0, 0, 0, 24));
+            EditHintPanel.Join(textPanel);
         }
     }
 
@@ -136,8 +142,9 @@ partial class PacketMakerUI
                     }
             }
             State = state;
-            SetHeight(0, 1f);
-            SetWidth(0, 0.25f);
+            SetHeight(0, 0.9f);
+            SetTop(0, 0, 0.5f);
+            SetWidth(0, 0.325f);
             SetMargin(16f);
         }
         public override void OnLeftMouseClick(UIMouseEvent evt)

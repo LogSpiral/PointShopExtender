@@ -37,7 +37,8 @@ public class RealCondition
             {
                 case ConditionType.Vanilla:
                     {
-                        var vCondition = (Condition)typeof(Condition).GetField(content, BindingFlags.Public | BindingFlags.Static).GetValue(null) ?? throw new Exception(PointShopExtenderSystem.GetLocalizationText("PacketMakerUI.UnknownVanillaCondition"));
+                        if (!PointShopExtenderSystem.VanillaConditionInstances.TryGetValue(content, out var vCondition))
+                            throw new Exception(PointShopExtenderSystem.GetLocalizationText("PacketMakerUI.UnknownVanillaCondition"));
                         condition = vCondition.Predicate;
                         break;
                     }
@@ -101,9 +102,56 @@ public class RealCondition
         result.ConditionContent = infos[1];
         return result;
     }
+
+    public string GetLocalizedTypeName()
+    {
+        return
+            PointShopExtenderSystem.GetLocalizationText($"PacketMakerUI.{ConditionType switch
+            {
+                ConditionType.Vanilla => "VanillaCondition",
+                ConditionType.ModEnvironment => "ModEnvironment",
+                ConditionType.ModBoss => "ModBoss",
+                ConditionType.None or _ => "NoneCondition"
+            }}");
+    }
+
+    public string GetContentName()
+    {
+        string result = "";
+        if (ConditionContent is { Length: > 0 } content)
+        {
+            switch (ConditionType)
+            {
+                case ConditionType.Vanilla:
+                    {
+                        var vCondition = (Condition)typeof(Condition).GetField(content, BindingFlags.Public | BindingFlags.Static).GetValue(null) ?? throw new Exception(PointShopExtenderSystem.GetLocalizationText("PacketMakerUI.UnknownVanillaCondition"));
+                        result = vCondition.Description.Value;
+                        break;
+                    }
+                case ConditionType.ModBoss:
+                    {
+                        if (ModLoader.HasMod(content.Split('/')[0]) && ModContent.TryFind<ModNPC>(content, out var modNPC))
+                            result = modNPC.DisplayName.Value;
+                        else
+                            result = PointShopExtenderSystem.GetLocalizationText("PacketMakerUI.Unloaded");
+                        break;
+                    }
+                case ConditionType.ModEnvironment:
+                    {
+                        if (ModContent.TryFind<ModBiome>(content, out var biome))
+                            result = biome.DisplayName.Value;
+                        else
+                            result = PointShopExtenderSystem.GetLocalizationText("PacketMakerUI.Unloaded");
+                        break;
+                    }
+            }
+        }
+        return result;
+    }
 }
 public enum ConditionType
 {
+    None,
     Vanilla,
     ModEnvironment,
     ModBoss

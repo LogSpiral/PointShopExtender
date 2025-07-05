@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using PointShopExtender.PacketManager;
 using ReLogic.Content;
 using System.Collections.Generic;
 using System.IO;
@@ -154,5 +155,16 @@ public sealed class ExtensionPack
     {
         Icon = icon;
         SaveIcon(rootPath);
+    }
+
+    public string GetDisplayName()
+    {
+        if (PacketMakerUI.IsChinese && DisplayName is { Length: > 0 } nameZh)
+            return nameZh;
+        else if (DisplayNameEn is { Length: > 0 } nameEn)
+            return nameEn;
+        //else if (Name is { Length: > 0 } nameFile)
+        //return nameFile;
+        return PackName;
     }
 }

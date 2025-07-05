@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using PointShop.ShopSystem;
+using PointShopExtender.PacketManager;
 using ReLogic.Content;
 using System;
 using System.IO;
@@ -68,5 +69,16 @@ public sealed class ConditionExtension
 
 
         return result;
+    }
+
+    public string GetDisplayName() 
+    {
+        if (PacketMakerUI.IsChinese && DisplayNameZH is { Length: > 0 } nameZh)
+            return nameZh;
+        else if (DisplayNameEN is { Length: > 0 } nameEn)
+            return nameEn;
+        //else if (Name is { Length: > 0 } nameFile)
+        //return nameFile;
+        return Name;
     }
 }

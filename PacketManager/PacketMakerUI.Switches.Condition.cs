@@ -1,6 +1,8 @@
 ﻿using PointShopExtender.PacketData;
+using SilkyUIFramework;
 using SilkyUIFramework.BasicElements;
 using SilkyUIFramework.Extensions;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace PointShopExtender.PacketManager;
@@ -12,24 +14,55 @@ partial class PacketMakerUI
     /// </summary>
     void SwitchToConditionItemPage()
     {
-        MainPanel.RemoveAllChildren();
+        SwicthPageCommon();
 
-        SUIScrollView packetItemList = new();
-        packetItemList.SetMargin(8f);
-        packetItemList.SetWidth(0, 1f);
-        packetItemList.SetLeft(0, 0, 0.5f);
-        packetItemList.SetHeight(0, 0.9f);
-        packetItemList.SetTop(0, 0.1f);
-        packetItemList.Join(MainPanel);
+        AddFilter();
+        SetNextTargetSize(new(700, 450));
 
-        ConditionItemElement createNew = new(new ConditionExtension(), true);
-        packetItemList.Container.AppendChild(createNew);
 
-        foreach (var condition in CurrentPack.ConditionExtensions)
+        SUIScrollView itemList = new();
+        itemList.SetMargin(8f);
+        itemList.SetWidth(0, 1f);
+        itemList.SetLeft(0, 0, 0.5f);
+        itemList.SetHeight(-40, 1f);
+        itemList.Join(MainPanel);
+
+        UpdateMainPanel = () =>
         {
-            ConditionItemElement singleItem = new(condition, false);
-            packetItemList.Container.AppendChild(singleItem);
-        }
+            if (!PendingUpdateList) return;
+            PendingUpdateList = false;
+            itemList.Container.RemoveAllChildren();
+            itemList.ScrollBar.ScrollByTop();
+            ConditionItemElement createNew = new(new ConditionExtension(), true);
+            itemList.Container.AppendChild(createNew);
+            HashSet<ConditionItemElement> inSearchItem = [];
+            HashSet<ConditionItemElement> others = [];
+            foreach (var condition in CurrentPack.ConditionExtensions)
+            {
+                List<string> matchingList = [condition.Name, condition.DisplayNameEN, condition.DisplayNameZH];
+                bool find = false;
+                if (!string.IsNullOrEmpty(CurrentSearchingText))
+                    foreach (var match in matchingList)
+                    {
+                        if (match.Contains(CurrentSearchingText))
+                        {
+                            find = true;
+                            break;
+                        }
+                    }
+                if (find)
+                    inSearchItem.Add(new(condition, false));
+                else
+                    others.Add(new(condition, false));
+            }
+            foreach (var item in inSearchItem)
+            {
+                item.BorderColor = SUIColor.Highlight;
+                itemList.Container.AppendChild(item);
+            }
+            foreach (var item in others)
+                itemList.Container.AppendChild(item);
+        };
     }
 
     /// <summary>
@@ -37,7 +70,9 @@ partial class PacketMakerUI
     /// </summary>
     void SwitchToConditionInfoPage(ConditionExtension condition)
     {
-        MainPanel.RemoveAllChildren();
+        SwicthPageCommon();
+        SetNextTargetSize(new(800, 320));
+
 
         ConditionInfoElement conditionInfoElement = new(condition);
         conditionInfoElement.Join(MainPanel);

@@ -1,5 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PointShop.Registrar;
+using PointShop.ShopSystem;
+using PointShopExtender.PacketData;
 using ReLogic.Content;
 using SilkyUIFramework;
 using SilkyUIFramework.BasicComponents;
@@ -11,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.Utilities.FileBrowser;
@@ -28,15 +32,16 @@ partial class PacketMakerUI
             SetWidth(0, 1);
             SetHeight(40, 0);
             LayoutType = LayoutType.Custom;
+            SetGap(0);
             var nameContainer = new UIElementGroup();
-            nameContainer.SetWidth(0, .33f);
+            nameContainer.SetWidth(0, .335f);
             nameContainer.SetHeight(40);
             nameContainer.BackgroundColor = Color.Black * .35f;
             nameContainer.Border = 2f;
             nameContainer.BorderColor = Color.Black;
 
             ContentName = new UITextView();
-            ContentName.Text = GetLocalizationText(Key);
+            ContentName.Text = GetLocalizedTextValue(Key);
             ContentName.SetLeft(0, 0, 0.5f);
 
             var contentContainer = new UIElementGroup();
@@ -60,11 +65,195 @@ partial class PacketMakerUI
             ContentText.OnEnterKeyDown += OnEnterKeyDown;
 
         }
-
+        public void SetBorderRadius(Vector4 radius)
+        {
+            ContentName.Parent?.BorderRadius = new Vector4(radius.X, 0, radius.Z, 0);
+            ContentText.Parent?.BorderRadius = new Vector4(0, radius.Y, 0, radius.W);
+        }
         public event Action OnTextChanged;
         public event Action OnEnterKeyDown;
     }
+    class ConditionEditEntryPanel : UIElementGroup
+    {
+        UITextView ContentName { get; set; }
+        UITextView ConditionText { get; set; }
+        RealCondition RealCondition { get; set; }
+        public ConditionEditEntryPanel(RealCondition realCondition, object owner)
+        {
+            SetWidth(0, 1);
+            SetHeight(40, 0);
+            LayoutType = LayoutType.Custom;
+            var nameContainer = new UIElementGroup();
+            nameContainer.SetWidth(0, .335f);
+            nameContainer.SetHeight(40);
+            nameContainer.BackgroundColor = Color.Black * .35f;
+            nameContainer.Border = 2f;
+            nameContainer.BorderColor = Color.Black;
+            nameContainer.LeftMouseClick += delegate
+            {
+                RealCondition ??= new RealCondition();
+                Instance.SwitchToRealConditionEditor(RealCondition, owner);
+            };
 
+            ContentName = new UITextView();
+            ContentName.Text = realCondition?.GetLocalizedTypeName() ?? "Null";
+            ContentName.SetLeft(0, 0, 0.5f);
+
+            var contentContainer = new UIElementGroup();
+            contentContainer.SetWidth(0, .67f);
+            contentContainer.SetLeft(0, 0, 1);
+            contentContainer.SetHeight(40);
+            contentContainer.BackgroundColor = Color.Black * .25f;
+            contentContainer.Border = 2f;
+            contentContainer.BorderColor = Color.Black;
+            contentContainer.LeftMouseClick += delegate
+            {
+                RealCondition ??= new RealCondition();
+                switch (RealCondition.ConditionType)
+                {
+                    case ConditionType.Vanilla:
+                        Instance.SwitchToVanillaConditions(RealCondition, owner);
+                        break;
+
+                    case ConditionType.ModEnvironment:
+                        Instance.SwitchToModdedEnvironments(RealCondition, owner);
+                        break;
+                    case ConditionType.ModBoss:
+                        Instance.SwitchToModdedBosses(RealCondition, owner);
+                        break;
+                    default:
+                        Instance.SwitchToRealConditionEditor(RealCondition, owner);
+                        break;
+                }
+            };
+
+            ConditionText = new SUIEditText();
+            ConditionText.Text = realCondition?.GetContentName() ?? "";
+            ConditionText.SetLeft(0, 0, 0.5f);
+
+            nameContainer.Join(this);
+            contentContainer.Join(this);
+            ContentName.Join(nameContainer);
+            ConditionText.Join(contentContainer);
+
+            ConditionText.IgnoreMouseInteraction = true;
+            ContentName.IgnoreMouseInteraction = true;
+
+            RealCondition = realCondition;
+
+        }
+        public void SetBorderRadius(Vector4 radius)
+        {
+            ContentName.Parent?.BorderRadius = new Vector4(radius.X, 0, radius.Z, 0);
+            ConditionText.Parent?.BorderRadius = new Vector4(0, radius.Y, 0, radius.W);
+        }
+
+        public override void OnLeftMouseClick(UIMouseEvent evt)
+        {
+            RealCondition ??= new RealCondition();
+
+        }
+    }
+    class ContentSingleTextPanel : UIElementGroup
+    {
+        UITextView ContentName { get; set; }
+        public ContentSingleTextPanel(string Key)
+        {
+            SetWidth(0, 1);
+            SetHeight(40, 0);
+            LayoutType = LayoutType.Custom;
+            var nameContainer = new UIElementGroup();
+            nameContainer.SetWidth(0, 1f);
+            nameContainer.SetHeight(40);
+            nameContainer.BackgroundColor = Color.Black * .35f;
+            nameContainer.Border = 2f;
+            nameContainer.BorderColor = Color.Black;
+
+            ContentName = new UITextView();
+            ContentName.Text = GetLocalizedTextValue(Key);
+            ContentName.SetLeft(0, 0, 0.5f);
+
+            nameContainer.Join(this);
+            ContentName.Join(nameContainer);
+
+        }
+        public void SetBorderRadius(Vector4 radius)
+        {
+            ContentName.Parent?.BorderRadius = radius;
+        }
+    }
+    class UnlockConditionEntryPanel : UIElementGroup
+    {
+        SUIImage ConditionIcon { get; set; }
+        UITextView ConditionName { get; set; }
+
+        public UnlockConditionEntryPanel(SimpleShopItemGenerator simpleShopItem)
+        {
+            string unlockConditionText = simpleShopItem.UnlockCondition ?? "";
+            string conditionName = "";
+            Asset<Texture2D> iconImage = ModAsset.UnlockConditionIconDefault;
+            if (!PointShopSystem.UnlockConditions.TryGetValue(unlockConditionText, out var condition))
+            {
+                var extension = CurrentPack.ConditionExtensions.FirstOrDefault(condition => condition.Name == unlockConditionText);
+                if (extension != null)
+                {
+                    iconImage = extension.IconTexture;
+                    conditionName = extension.GetDisplayName();
+                }
+                else
+                {
+                    iconImage = ModAsset.NoneConditionIcon;
+                    conditionName = GetLocalizedTextValue("NoneCondition");
+                }
+            }
+            else
+            {
+                iconImage = condition.Icon;
+                conditionName = condition.DisplayName;
+            }
+            SetWidth(0, 1);
+            SetHeight(40, 0);
+            LayoutType = LayoutType.Custom;
+            SetGap(0);
+            var nameContainer = new UIElementGroup();
+            nameContainer.SetWidth(0, .335f);
+            nameContainer.SetHeight(40);
+            nameContainer.BackgroundColor = Color.Black * .35f;
+            nameContainer.Border = 2f;
+            nameContainer.BorderColor = Color.Black;
+
+            ConditionIcon = new SUIImage(iconImage);
+            ConditionIcon.SetLeft(0, 0, 0.5f);
+
+            var contentContainer = new UIElementGroup();
+            contentContainer.SetWidth(0, .67f);
+            contentContainer.SetLeft(0, 0, 1);
+            contentContainer.SetHeight(40);
+            contentContainer.BackgroundColor = Color.Black * .25f;
+            contentContainer.Border = 2f;
+            contentContainer.BorderColor = Color.Black;
+
+            ConditionName = new UITextView();
+            ConditionName.Text = conditionName;
+            ConditionName.SetLeft(0, 0, 0.5f);
+
+            nameContainer.Join(this);
+            contentContainer.Join(this);
+            ConditionIcon.Join(nameContainer);
+            ConditionName.Join(contentContainer);
+        }
+        public void SetBorderRadius(Vector4 radius)
+        {
+            ConditionIcon.Parent?.BorderRadius = new Vector4(radius.X, 0, radius.Z, 0);
+            ConditionName.Parent?.BorderRadius = new Vector4(0, radius.Y, 0, radius.W);
+        }
+
+        public override void OnLeftMouseClick(UIMouseEvent evt)
+        {
+            Instance.SwitchToUnlockConditionPage();
+            base.OnLeftMouseClick(evt);
+        }
+    }
     abstract class SingleItemPanel : UIElementGroup
     {
         protected readonly static Asset<Texture2D> CreateNewIcon = ModAsset.CreateNew;
@@ -100,8 +289,11 @@ partial class PacketMakerUI
 
             Text = new UITextView();
             Text.Text = GetLocalizedTextValue("CreateNew");
-            Text.SetTop(0, 0.9f);
+            Text.WordWrap = true;
+            Text.SetTop(0, -0.1f, 1f);
             Text.SetLeft(0, 0, 0.5f);
+            Text.SetWidth(0, 0.8f);
+            Text.SetMaxWidth(0, 0.8f);
 
             Icon.Join(this);
             Text.Join(this);
@@ -109,7 +301,7 @@ partial class PacketMakerUI
 
         protected override void UpdateStatus(GameTime gameTime)
         {
-            BackgroundColor = Color.Lerp(BackgroundColor, Color.Black * (IsMouseHovering ? 0.1f : 0.25f), 0.1f);
+            HandleMouseOverColorPanel(this);
             base.UpdateStatus(gameTime);
         }
 
@@ -122,16 +314,15 @@ partial class PacketMakerUI
 
     abstract class InfoPagePanel : UIElementGroup
     {
-        protected SUIImage Image { get; set; }
-        UIElementGroup ImagePanel { get; set; }
-        UIElementGroup TextPanel { get; set; }
-        UITextView EditHint { get; set; }
+        protected SUIImage Image { get; private set; }
+        protected UIElementGroup ImagePanel { get; private set; }
+        protected UIElementGroup TextPanel { get; private set; }
+        // protected UITextView EditHint { get; private set; }
 
         protected void BuildPage()
         {
             SetWidth(0, 1f);
-            SetHeight(0, 0.9f);
-            SetTop(0, 0.1f);
+            SetHeight(0, 1f);
 
             LayoutType = LayoutType.Custom;
 
@@ -139,16 +330,14 @@ partial class PacketMakerUI
 
             InitializeText();
 
-            InitializeEditHint();
+            // InitializeEditHint();
         }
-
-        protected abstract void SwitchToContentPage(UIMouseEvent evt, UIView listeningElement);
 
         void InitalizeImage()
         {
             ImagePanel = new UIElementGroup();
             ImagePanel.SetTop(0, 0, 0.5f);
-            ImagePanel.SetHeight(0, 0.9f);
+            ImagePanel.SetHeight(0, 0.7f);
             ImagePanel.SetWidth(0, .3f);
             ImagePanel.SetLeft(0, 0.025f);
             ImagePanel.SetMargin(4f);
@@ -157,11 +346,7 @@ partial class PacketMakerUI
             ImagePanel.BorderColor = Color.Black * .5f;
             ImagePanel.BorderRadius = new(8);
             ImagePanel.BackgroundColor = Color.Black * .25f;
-            ImagePanel.OnUpdate += delegate
-            {
-                ImagePanel.BackgroundColor = Color.Lerp(ImagePanel.BackgroundColor, Color.Black * (ImagePanel.IsMouseHovering ? 0.1f : 0.25f), 0.1f);
-
-            };
+            ImagePanel.OnUpdate += delegate { HandleMouseOverColorPanel(ImagePanel); };
             ImagePanel.MouseEnter += delegate
             {
                 SoundEngine.PlaySound(SoundID.MenuTick);
@@ -182,7 +367,7 @@ partial class PacketMakerUI
             TextPanel = new();
             TextPanel.SetWidth(0, 0.60f);
             TextPanel.SetLeft(0, -0.025f, 1);
-            TextPanel.SetHeight(0, 0.8f);
+            TextPanel.SetHeight(0, 0.9f);
             TextPanel.SetTop(0, 0.05f);
             TextPanel.SetMargin(4);
             //TextPanel.BackgroundColor = Color.Black * .5f;
@@ -193,15 +378,15 @@ partial class PacketMakerUI
             OnInitializeTextPanel(TextPanel);
         }
 
-        void InitializeEditHint()
+        /*void InitializeEditHint()
         {
             EditHint = new UITextView();
-            EditHint.Text = GetLocalizationText("EditContent");
+            EditHint.Text = GetLocalizedTextValue("EditContent");
             EditHint.SetLeft(0, -0.025f, 1);
             EditHint.SetTop(0, -0.05f, 1);
             EditHint.OnUpdate += delegate
             {
-                EditHint.TextColor = Color.Lerp(EditHint.TextColor, EditHint.IsMouseHovering ? Color.White : Color.Gray, 0.1f);
+                HandleMouseOverColorText(EditHint);
             };
             EditHint.MouseEnter += delegate
             {
@@ -209,9 +394,9 @@ partial class PacketMakerUI
             };
             EditHint.LeftMouseClick += SwitchToContentPage;
             EditHint.Join(this);
-        }
+        }*/
 
-        private void OpenFileDialogueToSelectIcon(UIMouseEvent evt, UIView listeningElement)
+        protected virtual void OpenFileDialogueToSelectIcon(UIMouseEvent evt, UIView listeningElement)
         {
             ExtensionFilter[] extensions = [new ExtensionFilter("Image files", "png")];
 
@@ -229,4 +414,5 @@ partial class PacketMakerUI
 
         protected abstract void OnInitializeTextPanel(UIElementGroup textPanel);
     }
+
 }

@@ -46,6 +46,8 @@ namespace PointShopExtender
 
         public static HashSet<ExtensionPack> ExtensionPacks { get; } = [];
 
+
+        public static Dictionary<string, Condition> VanillaConditionInstances { get;  } = [];
         #region 管理模组boss击败情况
 
         // TODO 从boss列表中获取boss击败情况
@@ -82,6 +84,16 @@ namespace PointShopExtender
             KeybindLoader.RegisterKeybind(ShowManagerKeyBind);
 
             MonoModHooks.Add(typeof(LocalizationLoader).GetMethod("LoadTranslations", BindingFlags.Static | BindingFlags.NonPublic), LocalziationModify);
+
+            #region InitCondition
+            VanillaConditionInstances.Clear();
+            var sfldInfos = typeof(Condition).GetFields(BindingFlags.Public|BindingFlags.Static);
+            foreach (var fld in sfldInfos) 
+            {
+                if (fld.GetValue(null) is Condition condition)
+                    VanillaConditionInstances.Add(fld.Name, condition);
+            }
+            #endregion
             base.Load();
         }
         static List<(string key, string value)> LocalziationModify(Func<Mod, GameCulture, List<(string key, string value)>> orig, Mod mod, GameCulture gameCulture)

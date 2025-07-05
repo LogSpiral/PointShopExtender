@@ -35,7 +35,17 @@ PacketMakerUI: {
 	Version: 版本号
 	Description: 描述
 	DescriptionEn: 描述(英文)
+	Priority: 优先级
 	ColorText: 颜色码
+	Title: 积分商店拓展包管理器
+	ClickToEdit: 点击以编辑
+	NoneCondition: 无条件
+	VanillaCondition: 原版条件
+	ModEnvironment: 模组环境
+	ModBoss: 模组Boss
+	Unloaded: <未加载>
+	Price: 价格
+	Quantity: 数量
 }
 
 Keybinds.ShowPacketMakerUI.DisplayName: 开启拓展包管理器界面

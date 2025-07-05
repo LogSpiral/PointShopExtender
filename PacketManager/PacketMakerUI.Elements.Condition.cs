@@ -4,6 +4,7 @@ using ReLogic.Content;
 using SilkyUIFramework;
 using SilkyUIFramework.BasicElements;
 using SilkyUIFramework.Extensions;
+using System;
 using System.Linq;
 
 namespace PointShopExtender.PacketManager;
@@ -23,13 +24,8 @@ partial class PacketMakerUI
             Condition = condition;
             if (createNew) return;
 
-            if (IsChinese && condition.DisplayNameZH is { Length: > 0 } nameZh)
-                SetText(nameZh);
-            else if (condition.DisplayNameEN is { Length: > 0 } nameEn)
-                SetText(nameEn);
-            else if (condition.Name is { Length: > 0 } nameFile)
-                SetText(nameFile);
 
+            SetText(condition.GetDisplayName());
             SetIcon(condition.IconTexture);
         }
         public override void OnLeftMouseClick(UIMouseEvent evt)
@@ -49,17 +45,15 @@ partial class PacketMakerUI
             Condition = condition;
             BuildPage();
             Image.Texture2D = condition.IconTexture;
+
+            ImagePanel.SetSize(280, 280, 0, 0);
+            ImagePanel.SetTop(4, 0.05f, 0);
+            ImagePanel.SetLeft(10, 0, 0);
         }
         protected override void OnSetIcon(Asset<Texture2D> texture)
         {
             // Packet.SetIconAndSave(texture, RootPath);
         }
-
-        protected override void SwitchToContentPage(UIMouseEvent evt, UIView listeningElement)
-        {
-            // Instance.SwitchToBridgePage();
-        }
-
         protected override void OnInitializeTextPanel(UIElementGroup textPanel)
         {
             ContentTextEditablePanel FileNamePanel = new("FileName", Condition.Name);
@@ -76,6 +70,10 @@ partial class PacketMakerUI
 
             ContentTextEditablePanel DescriptionEnPanel = new("DescriptionEn", Condition.DescriptionEN);
             DescriptionEnPanel.Join(textPanel);
+
+            ConditionEditEntryPanel ConditionPanel = new(Condition.RealCondition, Condition);
+            ConditionPanel.SetBorderRadius(new(0, 0, 0, 24));
+            ConditionPanel.Join(textPanel);
         }
     }
 }

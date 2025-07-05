@@ -35,7 +35,17 @@ PacketMakerUI: {
 	Version: Version
 	Description: Description(Zh)
 	DescriptionEn: Description
+	Priority: Priority
 	ColorText: Color Hex
+	Title: Point Shop Extension Pack Manager
+	ClickToEdit: ClickToEdit
+	NoneCondition: None Condition
+	VanillaCondition: Vanilla
+	ModEnvironment: Mod Biome
+	ModBoss: Mod Boss
+	Unloaded: <Unloaded>
+	Price: Price
+	Quantity: Quantity
 }
 
 Keybinds.ShowPacketMakerUI.DisplayName: Show Packet Manager Interface
