@@ -4,6 +4,7 @@ using ReLogic.Content;
 using SilkyUIFramework;
 using SilkyUIFramework.BasicElements;
 using SilkyUIFramework.Extensions;
+using System.IO;
 using System.Linq;
 
 namespace PointShopExtender.PacketManager;
@@ -54,27 +55,67 @@ partial class PacketMakerUI
         protected override void OnSetIcon(Asset<Texture2D> texture)
         {
             // Packet.SetIconAndSave(texture, RootPath);
+            Environment.SetIconAndSave(texture);
         }
-
+        protected override void OpenFileDialogueToSelectIcon(UIMouseEvent evt, UIView listeningElement)
+        {
+            if (string.IsNullOrEmpty(Environment.Name))
+                GiveANameHint();
+            else
+                base.OpenFileDialogueToSelectIcon(evt, listeningElement);
+        }
 
         protected override void OnInitializeTextPanel(UIElementGroup textPanel)
         {
             ContentTextEditablePanel FileNamePanel = new("FileName", Environment.Name);
+            FileNamePanel.ContentText.PreTextChangeEvent += FileNameCommonCheck;
+            FileNamePanel.ContentText.EndTakingInput += (old, current) =>
+            {
+                if (string.IsNullOrEmpty(current)) FileNamePanel.ContentText.Text = old;
+                Environment.RenameFile(current);
+            };
             FileNamePanel.SetBorderRadius(new(24, 0, 0, 0));
             FileNamePanel.Join(textPanel);
 
             ContentTextEditablePanel DisplayNamePanel = new("DisplayName", Environment.DisplayNameZH);
+            DisplayNamePanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Environment, elem);
+            DisplayNamePanel.ContentText.EndTakingInput += (old, current) =>
+            {
+                Environment.SetDisplayNameAndSave(current);
+            };
             DisplayNamePanel.Join(textPanel);
 
             ContentTextEditablePanel DisplayNameEnPanel = new("DisplayNameEn", Environment.DisplayNameEN);
+            DisplayNameEnPanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Environment, elem);
+            DisplayNameEnPanel.ContentText.EndTakingInput += (old, current) =>
+            {
+                Environment.SetDisplayNameEnAndSave(current);
+            };
             DisplayNameEnPanel.Join(textPanel);
 
             ContentTextEditablePanel PriorityPanel = new("Priority", Environment.Priority.ToString());
+            PriorityPanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Environment, elem);
+            PriorityPanel.ContentText.PreTextChangeEvent += DigitsCommonCheck;
+            PriorityPanel.ContentText.EndTakingInput += (old, current) =>
+            {
+                var d = double.Parse(current);
+                int p = (int)d;
+                Environment.SetPriorityAndSave(p);
+                PriorityPanel.ContentText.Text = p.ToString();
+            };
             PriorityPanel.Join(textPanel);
 
             ContentTextEditablePanel ColorTextPanel = new("ColorText", Environment.ColorText);
+            ColorTextPanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Environment, elem);
+            ColorTextPanel.ContentText.PreTextChangeEvent += ColorTextCommonCheck;
+            ColorTextPanel.ContentText.MaxWordLength = 6;
+            ColorTextPanel.ContentText.EndTakingInput += (old, current) =>
+            {
+                Environment.SetColorTextAndSave(current);
+            };
             ColorTextPanel.Join(textPanel);
 
+            Environment.RealCondition.Owner = Environment;
             ConditionEditEntryPanel ConditionPanel = new(Environment.RealCondition, Environment);
             ConditionPanel.SetBorderRadius(new(0, 0, 0, 24));
             ConditionPanel.Join(textPanel);

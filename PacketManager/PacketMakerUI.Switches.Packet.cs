@@ -16,16 +16,16 @@ partial class PacketMakerUI
     /// </summary>
     void SwitchToPacketItemPage()
     {
+        CurrentPack = null;
 
         SwicthPageCommon();
         SetNextTargetSize(new(700, 450));
-
-
-
+        PathTracker.AddNewPath("PacketExtensionViewPage", Instance.SwitchToPacketItemPage);
         AddFilter();
-
-
+        SavePendingShop();
         SUIScrollView itemList = new();
+
+
         itemList.SetMargin(8f);
         itemList.SetWidth(0, 1f);
         itemList.SetLeft(0, 0, 0.5f);
@@ -38,8 +38,11 @@ partial class PacketMakerUI
             PendingUpdateList = false;
             itemList.Container.RemoveAllChildren();
             itemList.ScrollBar.ScrollByTop();
+
             PacketItemElement createNew = new(new ExtensionPack(), true);
             itemList.Container.AppendChild(createNew);
+
+
             HashSet<PacketItemElement> inSearchItem = [];
             HashSet<PacketItemElement> others = [];
             foreach (var pack in PointShopExtenderSystem.ExtensionPacks)
@@ -55,6 +58,8 @@ partial class PacketMakerUI
                             break;
                         }
                     }
+                if (PointShopExtenderSystem.FavList.Contains(pack.PackName))
+                    find = true;
                 if (find)
                     inSearchItem.Add(new(pack, false));
                 else
@@ -77,8 +82,9 @@ partial class PacketMakerUI
     {
         CurrentPack = extensionPack;
         SwicthPageCommon();
+        SavePendingShop();
         SetNextTargetSize(new(800, 320));
-
+        PathTracker.AddNewPath("PacketInfoPage", () => Instance.SwitchToPacketInfoPage(extensionPack));
 
         PacketInfoElement packetInfoElement = new(extensionPack);
         packetInfoElement.Join(MainPanel);
@@ -90,8 +96,9 @@ partial class PacketMakerUI
     void SwitchToBridgePage()
     {
         SwicthPageCommon();
-        SetNextTargetSize(new(700,350));
-
+        SavePendingShop();
+        SetNextTargetSize(new(700, 350));
+        PathTracker.AddNewPath("ExtensionTypePage", Instance.SwitchToBridgePage);
 
         UIElementGroup container = new();
         container.LayoutType = LayoutType.Flexbox;

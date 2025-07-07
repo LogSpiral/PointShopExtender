@@ -1,24 +1,3 @@
-Environments: {
-	Torch: Torch
-	Hammer: Hammer
-	TerraBlade: TerraBlade
-	// VortexTower: 星璇塔
-	// AbyssLayer1: 深渊一层
-}
-
-UnlockCondition: {
-	DownedMoonLord: {
-		// DisplayName: 击败月球领主
-		// DescriptionName: ""
-		// Description: 需要击败月球领主
-	}
-
-	DownedDevourerofGodsHead: {
-		// DisplayName: 击败神明吞噬者
-		// Description: 需要击败神明吞噬者
-	}
-}
-
 PacketMakerUI: {
 	CreateNew: 新建...
 	Shop: 添加商品
@@ -46,6 +25,47 @@ PacketMakerUI: {
 	Unloaded: <未加载>
 	Price: 价格
 	Quantity: 数量
+	CommonEnvironment: 通用
+	PacketExtensionViewPage: 拓展包总览页
+	PacketInfoPage: 拓展包信息页
+	ExtensionTypePage: 内容选择页
+	ShopExtensionPage: 商店拓展页
+	EnvironmentExtensionPage: 环境拓展页
+	ConditionExtensionPage: 条件拓展页
+	ShopInfoPage: 商店信息页
+	EnvironmentInfoPage: 环境信息页
+	ConditionInfoPage: 条件信息页
+	ShopPreviewPage: 商店预览页
+	ShopItemInfoPage: 商品信息页
+	ShopItemBrowser: 商品浏览页
+	UnlockConditionPage: 解锁条件页
+	ConditionTypePage: 条件类型页
+	ConditionVanillaPage: 原版条件页
+	ConditionModEnvironmentPage: 模组环境页
+	ConditionModBossPage: 模组Boss页
+	GiveANamePlz: 请先命名文件
+	ChooseAItemFirst: 请先选择物品
+	Defeat: 击败:
+	Satisfy: 满足:
+	Surround: 处于:
+	OpenFolder: 打开文件夹
+	ShowPath: 显示路径面板
+	AutoInfo: 自动填充信息到环境/条件
+	OpenTutorial: 打开教程页面
+	ReturnToLast: 返回上级目录
+	ReturnToMenu: 返回主页
+	Delete: 删除
+	Favorited: 已收藏
+	ReloadToDisable: 需要重新加载模组以禁用
+	ReloadToEnable: 需要重新加载模组以启用
+	Disabled: 已禁用
 }
 
 Keybinds.ShowPacketMakerUI.DisplayName: 开启拓展包管理器界面
+
+Items: {
+	CreateNewDummyItem: {
+		DisplayName: 新建物品
+		Tooltip: ""
+	}
+}

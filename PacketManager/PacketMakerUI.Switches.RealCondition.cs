@@ -15,12 +15,12 @@ partial class PacketMakerUI
     /// <summary>
     /// 切换至实际条件编辑页面
     /// </summary>
-    void SwitchToRealConditionEditor(RealCondition realCondition, object owner)
+    void SwitchToRealConditionEditor(RealCondition realCondition)
     {
         SwicthPageCommon();
 
         SetNextTargetSize(new(960, 350));
-
+        PathTracker.AddNewPath("ConditionTypePage", () => Instance.SwitchToRealConditionEditor(realCondition));
 
         UIElementGroup container = new();
         container.LayoutType = LayoutType.Flexbox;
@@ -34,7 +34,7 @@ partial class PacketMakerUI
 
         for (int n = 0; n < 4; n++)
         {
-            ConditionTypeElement conditionTypeElement = new((ConditionType)n, realCondition, owner);
+            ConditionTypeElement conditionTypeElement = new((ConditionType)n, realCondition);
             container.AppendChild(conditionTypeElement);
         }
     }
@@ -42,11 +42,11 @@ partial class PacketMakerUI
     /// <summary>
     /// 切换至原版条件选择
     /// </summary>
-    void SwitchToVanillaConditions(RealCondition realCondition, object owner)
+    void SwitchToVanillaConditions(RealCondition realCondition)
     {
         SwicthPageCommon();
         SetNextTargetSize(new(700, 450));
-
+        PathTracker.AddNewPath("ConditionVanillaPage", () => Instance.SwitchToVanillaConditions(realCondition));
         AddFilter();
 
 
@@ -79,9 +79,9 @@ partial class PacketMakerUI
                         }
                     }
                 if (find)
-                    inSearchItem.Add(new(pair.Key, realCondition, owner));
+                    inSearchItem.Add(new(pair.Key, realCondition));
                 else
-                    others.Add(new(pair.Key, realCondition, owner));
+                    others.Add(new(pair.Key, realCondition));
             }
             foreach (var item in inSearchItem)
             {
@@ -97,11 +97,11 @@ partial class PacketMakerUI
     /// <summary>
     /// 切换至模组环境选择
     /// </summary>
-    void SwitchToModdedEnvironments(RealCondition realCondition, object owner)
+    void SwitchToModdedEnvironments(RealCondition realCondition)
     {
         SwicthPageCommon();
         SetNextTargetSize(new(700, 450));
-
+        PathTracker.AddNewPath("ConditionModEnvironmentPage", () => Instance.SwitchToVanillaConditions(realCondition));
         AddFilter();
 
 
@@ -136,9 +136,9 @@ partial class PacketMakerUI
                 try
                 {
                     if (find)
-                        inSearchItem.Add(new(pair.Value, realCondition, owner));
+                        inSearchItem.Add(new(pair.Value, realCondition));
                     else
-                        others.Add(new(pair.Value, realCondition, owner));
+                        others.Add(new(pair.Value, realCondition));
                 }
                 catch
                 {
@@ -159,11 +159,11 @@ partial class PacketMakerUI
     /// <summary>
     /// 切换至模组boss选择
     /// </summary>
-    void SwitchToModdedBosses(RealCondition realCondition, object owner)
+    void SwitchToModdedBosses(RealCondition realCondition)
     {
         SwicthPageCommon();
         SetNextTargetSize(new(700, 450));
-
+        PathTracker.AddNewPath("ConditionModBossPage", () => Instance.SwitchToVanillaConditions(realCondition));
         AddFilter();
 
 
@@ -205,11 +205,11 @@ partial class PacketMakerUI
                 try
                 {
                     if (find)
-                        inSearchItem.Add(new(pair.Value, realCondition, owner));
+                        inSearchItem.Add(new(pair.Value, realCondition));
                     else
-                        others.Add(new(pair.Value, realCondition, owner));
+                        others.Add(new(pair.Value, realCondition));
                 }
-                catch 
+                catch
                 {
                     continue;
                 }

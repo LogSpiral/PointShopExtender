@@ -1,10 +1,15 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework.Graphics;
+using PointShopExtender.PacketManager;
+using ReLogic.Content;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
+using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
@@ -12,6 +17,8 @@ namespace PointShopExtender.PacketData;
 
 public class RealCondition
 {
+    public ExtensionWithInfo Owner { get; set; }
+
     public ConditionType ConditionType;
 
     public string ConditionContent = "";
@@ -147,6 +154,57 @@ public class RealCondition
             }
         }
         return result;
+    }
+
+    public void SaveFile() => Owner?.SaveAfterSetCondition();
+    public (Asset<Texture2D>, LocalizedText) GetInfo()
+    {
+        Asset<Texture2D> asset = null;
+        LocalizedText localizedText = null;
+        switch (ConditionType)
+        {
+            case ConditionType.None:
+                {
+                    asset = ModAsset.NoneConditionIcon;
+                    localizedText = PointShopExtenderSystem.GetLocalization("PacketMakerUI.NoneCondition");
+                    break;
+                }
+            case ConditionType.Vanilla:
+                {
+                    asset = ModAsset.VanillaConditionIcon;
+                    if (PointShopExtenderSystem.VanillaConditionInstances.TryGetValue(ConditionContent, out var condition))
+                        localizedText = condition.Description;
+                    break;
+                }
+            case ConditionType.ModEnvironment:
+                {
+
+                    if (ModContent.TryFind<ModBiome>(ConditionContent, out var biome))
+                    {
+                        string text = biome.BestiaryIcon;
+                        if (biome.Name is "AstralCaveDesert")
+                            text = text.Replace("CaveDesert", "DesertCave"); // FKU CLMT
+                        if (ModContent.RequestIfExists<Texture2D>(text, out var result))
+                            asset = result;
+
+                        localizedText = biome.DisplayName;
+                    }
+                    break;
+                }
+            case ConditionType.ModBoss:
+                {
+                    if (ModContent.TryFind<ModNPC>(ConditionContent, out var npc))
+                    {
+                        var index = NPCID.Sets.BossHeadTextures[npc.Type];
+                        NPCLoader.BossHeadSlot(ContentSamples.NpcsByNetId[npc.Type], ref index);
+                        asset = TextureAssets.NpcHeadBoss[index];
+
+                        localizedText = npc.DisplayName;
+                    }
+                    break;
+                }
+        }
+        return (asset, localizedText);
     }
 }
 public enum ConditionType

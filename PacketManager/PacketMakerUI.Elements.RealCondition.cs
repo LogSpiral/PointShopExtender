@@ -19,8 +19,7 @@ partial class PacketMakerUI
     {
         ConditionType State { get; init; }
         RealCondition RealCondition { get; set; }
-        object Owner { get; init; }
-        public ConditionTypeElement(ConditionType state, RealCondition realCondition,object owner) : base()
+        public ConditionTypeElement(ConditionType state, RealCondition realCondition) : base()
         {
             switch (state)
             {
@@ -51,7 +50,6 @@ partial class PacketMakerUI
             }
             RealCondition = realCondition;
             State = state;
-            Owner = owner;
             SetHeight(0, 0.9f);
             SetTop(0, 0, 0.5f);
             SetWidth(0, 0.24f);
@@ -65,27 +63,23 @@ partial class PacketMakerUI
                     {
                         RealCondition.ConditionType = ConditionType.None;
                         RealCondition.ConditionContent = "";
-
-                        if (Owner is ConditionExtension conditionExtension)
-                            Instance.SwitchToConditionInfoPage(conditionExtension);
-
-                        if (Owner is EnvironmentExtension environmentExtension)
-                            Instance.SwitchToEnvironmentInfoPage(environmentExtension);
+                        RealCondition.SaveFile();
+                        Instance.PathTracker.ReturnToPreviousPage();
                         break;
                     }
                 case ConditionType.Vanilla:
                     {
-                        Instance.SwitchToVanillaConditions(RealCondition, Owner);
+                        Instance.SwitchToVanillaConditions(RealCondition);
                         break;
                     }
                 case ConditionType.ModEnvironment:
                     {
-                        Instance.SwitchToModdedEnvironments(RealCondition, Owner);
+                        Instance.SwitchToModdedEnvironments(RealCondition);
                         break;
                     }
                 case ConditionType.ModBoss:
                     {
-                        Instance.SwitchToModdedBosses(RealCondition, Owner);
+                        Instance.SwitchToModdedBosses(RealCondition);
                         break;
                     }
             }
@@ -96,28 +90,21 @@ partial class PacketMakerUI
     abstract class ConditionSetterItemElement : SingleItemPanel
     {
         protected RealCondition RealCondition { get; set; }
-        protected object Owner { get; set; }
-        protected ConditionSetterItemElement(RealCondition realCondition, object owner) : base()
+        protected ConditionSetterItemElement(RealCondition realCondition) : base()
         {
             RealCondition = realCondition;
-            Owner = owner;
-            //SetWidth(0, 0.19f);
-            //SetHeight(150f, 0);
         }
         public override void OnLeftMouseClick(UIMouseEvent evt)
         {
-            if (Owner is ConditionExtension conditionExtension)
-                Instance.SwitchToConditionInfoPage(conditionExtension);
-
-            if (Owner is EnvironmentExtension environmentExtension)
-                Instance.SwitchToEnvironmentInfoPage(environmentExtension);
+            RealCondition.SaveFile();
+            Instance.PathTracker.ReturnToPreviousPage(2);
         }
     }
 
     class VanillaConditionItemElement : ConditionSetterItemElement
     {
         string ConditionFieldName { get; set; }
-        public VanillaConditionItemElement(string name, RealCondition realCondition, object owner) : base(realCondition, owner)
+        public VanillaConditionItemElement(string name, RealCondition realCondition) : base(realCondition)
         {
             ConditionFieldName = name;
             if (PointShopExtenderSystem.VanillaConditionInstances.TryGetValue(name, out var condition))
@@ -134,14 +121,16 @@ partial class PacketMakerUI
     class ModEnvironmentItemElement : ConditionSetterItemElement
     {
         ModBiome ModBiome { get; set; }
-        public ModEnvironmentItemElement(ModBiome modBiome, RealCondition realCondition, object owner) : base(realCondition, owner)
+        public ModEnvironmentItemElement(ModBiome modBiome, RealCondition realCondition) : base(realCondition)
         {
             ModBiome = modBiome;
 
             string text = modBiome.BestiaryIcon;
             if (modBiome.Name is "AstralCaveDesert")
                 text = text.Replace("CaveDesert", "DesertCave"); // FKU CLMT
-            SetIcon(ModContent.Request<Texture2D>(text));
+
+            if (ModContent.RequestIfExists<Texture2D>(text, out var icon))
+                SetIcon(icon);
 
             SetText(modBiome.DisplayName.Value);
         }
@@ -156,20 +145,13 @@ partial class PacketMakerUI
     class ModBossItemElement : ConditionSetterItemElement
     {
         ModNPC ModBoss { get; set; }
-        public ModBossItemElement(ModNPC modBoss, RealCondition realCondition, object owner) : base(realCondition, owner)
+        public ModBossItemElement(ModNPC modBoss, RealCondition realCondition) : base(realCondition)
         {
             ModBoss = modBoss;
 
-            try
-            {
-                var index = NPCID.Sets.BossHeadTextures[modBoss.Type];
-                NPCLoader.BossHeadSlot(ContentSamples.NpcsByNetId[modBoss.Type], ref index);
-                SetIcon(TextureAssets.NpcHeadBoss[index]);
-            }
-            catch 
-            {
-                Main.NewText(modBoss.Name);
-            }
+            var index = NPCID.Sets.BossHeadTextures[modBoss.Type];
+            NPCLoader.BossHeadSlot(ContentSamples.NpcsByNetId[modBoss.Type], ref index);
+            SetIcon(TextureAssets.NpcHeadBoss[index]);
 
             SetText(modBoss.DisplayName.Value);
         }

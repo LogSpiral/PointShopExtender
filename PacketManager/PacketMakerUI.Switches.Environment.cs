@@ -17,7 +17,7 @@ partial class PacketMakerUI
         SwicthPageCommon();
         AddFilter();
         SetNextTargetSize(new(700, 450));
-
+        PathTracker.AddNewPath("EnvironmentExtensionPage", Instance.SwitchToEnvironmentItemPage);
 
         SUIScrollView itemList = new();
         itemList.SetMargin(8f);
@@ -32,7 +32,7 @@ partial class PacketMakerUI
             PendingUpdateList = false;
             itemList.Container.RemoveAllChildren();
             itemList.ScrollBar.ScrollByTop();
-            EnvironmentItemElement createNew = new(new EnvironmentExtension(), true);
+            EnvironmentItemElement createNew = new(new EnvironmentExtension() { Packet = CurrentPack, Condition = "", RealCondition = new() }, true);
             itemList.Container.AppendChild(createNew);
             HashSet<EnvironmentItemElement> inSearchItem = [];
             HashSet<EnvironmentItemElement> others = [];
@@ -71,6 +71,7 @@ partial class PacketMakerUI
     {
         SwicthPageCommon();
         SetNextTargetSize(new(800, 320));
+        PathTracker.AddNewPath("EnvironmentInfoPage", () => SwitchToEnvironmentInfoPage(environment));
 
 
         EnvironmentInfoElement environmentInfoElement = new(environment);

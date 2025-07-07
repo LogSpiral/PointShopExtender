@@ -40,14 +40,24 @@ namespace PointShopExtender
     }
     public class PointShopExtenderSystem : ModSystem
     {
+        public static readonly string RootPath = Path.Combine(Main.SavePath, "Mods", nameof(PointShopExtender));
         public static LocalizedText GetLocalization(string suffix) => Language.GetText($"Mods.{nameof(PointShopExtender)}.{suffix}");
         public static string GetLocalizationText(string suffix) => GetLocalization(suffix).Value;
 
-
+        public static HashSet<char> InvaildNameChars { get; private set; }
         public static HashSet<ExtensionPack> ExtensionPacks { get; } = [];
 
+        public static bool AutoInfoMode { get; set; } = true;
 
-        public static Dictionary<string, Condition> VanillaConditionInstances { get;  } = [];
+        public static Dictionary<string, Condition> VanillaConditionInstances { get; } = [];
+
+        public static HashSet<string> LoadTimeBanList { get; } = [];
+
+        public static HashSet<string> BanList { get; } = [];
+
+        public static HashSet<string> FavList { get; } = [];
+
+
         #region 管理模组boss击败情况
 
         // TODO 从boss列表中获取boss击败情况
@@ -62,11 +72,13 @@ namespace PointShopExtender
                     DownedBosses.Add(names[i]);
             }
 
+            PacketMakerUI.IsChinese = Language.ActiveCulture == GameCulture.FromCultureName(GameCulture.CultureName.Chinese);
             base.LoadWorldData(tag);
         }
         public override void SaveWorldData(TagCompound tag)
         {
             tag["DownedBosses"] = DownedBosses.ToArray();
+            PacketMakerUI.Active = false;
             base.SaveWorldData(tag);
         }
         #endregion
@@ -83,19 +95,38 @@ namespace PointShopExtender
             ShowManagerKeyBind = new ModKeybind(Mod, "ShowPacketMakerUI", "P");
             KeybindLoader.RegisterKeybind(ShowManagerKeyBind);
 
-            MonoModHooks.Add(typeof(LocalizationLoader).GetMethod("LoadTranslations", BindingFlags.Static | BindingFlags.NonPublic), LocalziationModify);
+            //MonoModHooks.Add(typeof(LocalizationLoader).GetMethod("LoadTranslations", BindingFlags.Static | BindingFlags.NonPublic), LocalziationModify);
 
             #region InitCondition
             VanillaConditionInstances.Clear();
-            var sfldInfos = typeof(Condition).GetFields(BindingFlags.Public|BindingFlags.Static);
-            foreach (var fld in sfldInfos) 
+            var sfldInfos = typeof(Condition).GetFields(BindingFlags.Public | BindingFlags.Static);
+            foreach (var fld in sfldInfos)
             {
                 if (fld.GetValue(null) is Condition condition)
                     VanillaConditionInstances.Add(fld.Name, condition);
             }
             #endregion
+
+            InvaildNameChars = [.. Path.GetInvalidFileNameChars()];
+
+            if (File.Exists(RootPath + "BanList.txt"))
+            {
+                var lines = File.ReadAllLines(RootPath + "BanList.txt");
+                foreach (var line in lines) 
+                {
+                    BanList.Add(line);
+                    LoadTimeBanList.Add(line);
+                }
+            }
+            if (File.Exists(RootPath + "FavList.txt"))
+            {
+                var lines = File.ReadAllLines(RootPath + "FavList.txt");
+                foreach (var line in lines)
+                    FavList.Add(line);
+            }
             base.Load();
         }
+        [Obsolete]
         static List<(string key, string value)> LocalziationModify(Func<Mod, GameCulture, List<(string key, string value)>> orig, Mod mod, GameCulture gameCulture)
         {
             var result = orig.Invoke(mod, gameCulture);
@@ -154,7 +185,8 @@ namespace PointShopExtender
             }
 
             foreach (var pack in ExtensionPacks)
-                pack.Register();
+                if (!BanList.Contains(pack.Name))
+                    pack.Register();
         }
 
         public override void PostSetupContent()
@@ -165,7 +197,7 @@ namespace PointShopExtender
         }
 
         [Obsolete]
-        static void CopyTest() 
+        static void CopyTest()
         {
             var pack = ExtensionPacks.First();
             var name = pack.PackName;

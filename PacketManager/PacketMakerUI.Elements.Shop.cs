@@ -10,15 +10,14 @@ using SilkyUIFramework;
 using SilkyUIFramework.BasicComponents;
 using SilkyUIFramework.BasicElements;
 using SilkyUIFramework.Extensions;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Terraria;
-using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ID;
-using Terraria.Map;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Default;
-using static Terraria.GameContent.Animations.IL_Actions.NPCs;
 
 namespace PointShopExtender.PacketManager;
 
@@ -67,18 +66,35 @@ partial class PacketMakerUI
         }
         protected override void OnSetIcon(Asset<Texture2D> texture)
         {
-            // Packet.SetIconAndSave(texture, RootPath);
+            Shop.SetIconAndSave(texture);
         }
-
+        protected override void OpenFileDialogueToSelectIcon(UIMouseEvent evt, UIView listeningElement)
+        {
+            if (string.IsNullOrEmpty(Shop.Name))
+                GiveANameHint();
+            else
+                base.OpenFileDialogueToSelectIcon(evt, listeningElement);
+        }
         protected override void OnInitializeTextPanel(UIElementGroup textPanel)
         {
-            ContentTextEditablePanel PacketNamePanel = new("FileName", Shop.Name);
-            PacketNamePanel.SetBorderRadius(new(24, 0, 0, 0));
-            PacketNamePanel.Join(textPanel);
+            ContentTextEditablePanel FileNamePanel = new("FileName", Shop.Name);
+            FileNamePanel.ContentText.PreTextChangeEvent += FileNameCommonCheck;
+            FileNamePanel.ContentText.EndTakingInput += (old, current) =>
+            {
+                if (string.IsNullOrEmpty(current)) FileNamePanel.ContentText.Text = old;
+                Shop.RenameFile(current);
+            };
+            FileNamePanel.SetBorderRadius(new(24, 0, 0, 0));
+            FileNamePanel.Join(textPanel);
 
             ContentSingleTextPanel EditHintPanel = new("EditContent");
             EditHintPanel.LeftMouseClick += delegate
             {
+                if (string.IsNullOrEmpty(Shop.Name))
+                {
+                    GiveANameHint();
+                    return;
+                }
                 Instance.SwitchToShopContentPage(Shop);
             };
             EditHintPanel.SetBorderRadius(new(0, 0, 0, 24));
@@ -184,7 +200,6 @@ partial class PacketMakerUI
             }.Join(rightContainer);
             ShopItemTableScrollView.SetPadding(4f);
             ShopItemTableScrollView.SetWidth(0f, 1f);
-
             ShopItemTableScrollView.Container.Gap = new Vector2(4);
         }
 
@@ -200,23 +215,35 @@ partial class PacketMakerUI
 
         public void UpdateMenuList()
         {
-            var environments = PointShopSystem.Environments;
+            var loadedEnvironments = PointShopSystem.Environments;
+            HashSet<GameEnvironment> packEnvironments = [];
 
-            for (int i = 0; i < environments.Count; i++)
+
+
+            HashSet<string> AddedEnvironmentName = [];
+            foreach (var environment in loadedEnvironments)
+                AddedEnvironmentName.Add(environment.Name);
+
+            SUIDividingLine line = null;
+            foreach (var extension in CurrentPack.EnvironmentExtensions)
             {
-                var environment = environments[i];
-                var button = new SUIMenuComponent(environment).Join(MenuListScrollView.Container);
+                if (AddedEnvironmentName.Contains(extension.Name)) continue;
+                packEnvironments.Add(extension.ToGameEnvironmentExtended());
+                AddedEnvironmentName.Add(extension.Name);
+            }
+            GameEnvironment[] commonArray = [new CommonEnvironment()];
+            IEnumerable<GameEnvironment> environments = commonArray.Union(loadedEnvironments).Union(packEnvironments);
 
+            foreach (var environment in environments)
+            {
+                var button = new SUIMenuComponent(environment).Join(MenuListScrollView.Container);
                 button.LeftMouseDown += (_, _) =>
                 {
                     CurrentEnvironmentName = environment.Name;
                 };
-
-                if (i + 1 != environments.Count)
-                {
-                    SUIDividingLine.Horizontal(SUIColor.Border * 0.75f).Join(MenuListScrollView.Container);
-                }
+                line = SUIDividingLine.Horizontal(SUIColor.Border * 0.75f).Join(MenuListScrollView.Container);
             }
+            line.Remove();
         }
         private static bool ShopItemFilters(Item item) => item.Name.Contains(Instance.SearchBox.Text.Trim());
 
@@ -225,16 +252,24 @@ partial class PacketMakerUI
         /// </summary>
         public void UpdateShopItemTable()
         {
-            var dict = ShopExtension.SimpleShopData.EnvironmentShopItems;
-            if (!dict.TryGetValue(CurrentEnvironmentName, out var list))
+            List<SimpleShopItemGenerator> list;
+            if (CurrentEnvironmentName is "Common")
+                list = ShopExtension.SimpleShopData.CommonItems;
+            else
             {
-                list = [];
-                dict.Add(CurrentEnvironmentName, list);
+                var dict = ShopExtension.SimpleShopData.EnvironmentShopItems;
+                if (!dict.TryGetValue(CurrentEnvironmentName, out list))
+                {
+                    list = [];
+                    dict.Add(CurrentEnvironmentName, list);
+                }
             }
+
 
             ShopItemTableScrollView.Container.RemoveAllChildren();
 
-            ShopItemTableScrollView.Container.AppendChild(new SimpleShopItemPreviewElement(new SimpleShopItemGenerator()));
+            var newItem = new SimpleShopItemGenerator();
+            ShopItemTableScrollView.Container.AppendChild(new SimpleShopItemPreviewElement(newItem, () => list.Add(newItem)));
             foreach (var shopItem in list)
             {
                 if (!int.TryParse(shopItem.Type, out var id))
@@ -246,7 +281,7 @@ partial class PacketMakerUI
 
                 if (!ShopItemFilters(item)) continue;
 
-                ShopItemTableScrollView.Container.AppendChild(new SimpleShopItemPreviewElement(shopItem));
+                ShopItemTableScrollView.Container.AppendChild(new SimpleShopItemPreviewElement(shopItem, null));
             }
         }
     }
@@ -254,17 +289,34 @@ partial class PacketMakerUI
     class ShopItemEditorPage : InfoPagePanel
     {
         SimpleShopItemGenerator ShopItem { get; set; }
-        public ShopItemEditorPage(SimpleShopItemGenerator shopItem)
+        SUIItemSlot ItemSlot { get; set; }
+        Action AppendCallBack { get; set; }
+        public ShopItemEditorPage(SimpleShopItemGenerator shopItem, Action appendToListCallBack)
         {
-
+            AppendCallBack = appendToListCallBack;
+            // LayoutType = LayoutType.Custom;
             ShopItem = shopItem;
             BuildPage();
-            if (!int.TryParse(shopItem.Type, out var id))
+            int id;
+            if (string.IsNullOrEmpty(shopItem.Type))
+                id = CreateNewDummyItem.ID();
+            else if (!int.TryParse(shopItem.Type, out id))
             {
                 if (!ItemID.Search.TryGetId(shopItem.Type, out id))
                     id = ModContent.ItemType<UnloadedItem>();
             }
-            Image.Texture2D = TextureAssets.Item[id];
+
+            // Image.Texture2D = TextureAssets.Item[ItemID.None];
+
+            ImagePanel.RemoveAllChildren();
+
+            ItemSlot = new SUIItemSlot();
+            ItemSlot.SetLeft(0, 0, 0.5f);
+            ItemSlot.SetTop(0, 0, 0.5f);
+            ItemSlot.Item = ContentSamples.ItemsByType[id];
+            ItemSlot.ItemAlign = new(.5f);
+            ItemSlot.Join(ImagePanel);
+            ItemSlot.ItemInteractive = false;
 
             ImagePanel.SetSize(135, 135, 0, 0);
             ImagePanel.SetLeft(20, 0, 0);
@@ -273,16 +325,57 @@ partial class PacketMakerUI
         }
         protected override void OpenFileDialogueToSelectIcon(UIMouseEvent evt, UIView listeningElement)
         {
-            Instance.SwitchToSingleShopItemPage(ShopItem);
+            Instance.SwitchToSingleShopItemPage(ShopItem, AppendCallBack);
         }
 
         protected override void OnInitializeTextPanel(UIElementGroup textPanel)
         {
-            ContentTextEditablePanel PricePanel = new ("Price", ShopItem.Prices.ToString());
-            PricePanel.SetBorderRadius(new(24,0,0,0));
+            ContentTextEditablePanel PricePanel = new("Price", ShopItem.Prices.ToString());
+            PricePanel.ContentText.GotFocus += (evt, elem) =>
+            {
+                if (string.IsNullOrEmpty(ShopItem.Type))
+                {
+                    elem.SilkyUI.SetFocus(null);
+                    ChooseAItemHint();
+                    return;
+                }
+            };
+            PricePanel.ContentText.PreTextChangeEvent += DigitsCommonCheck;
+            PricePanel.ContentText.EndTakingInput += (old, current) =>
+            {
+                if (int.TryParse(current, out var value) && value >= 0)
+                {
+                    ShopItem.Prices = value;
+                    PendingShopModified = true;
+                }
+                else
+                    PricePanel.ContentText.Text = old;
+
+            };
+            PricePanel.SetBorderRadius(new(24, 0, 0, 0));
             PricePanel.Join(textPanel);
 
             ContentTextEditablePanel QuantityPanel = new("Quantity", ShopItem.Quantity.ToString());
+            QuantityPanel.ContentText.GotFocus += (evt, elem) =>
+            {
+                if (string.IsNullOrEmpty(ShopItem.Type))
+                {
+                    elem.SilkyUI.SetFocus(null);
+                    ChooseAItemHint();
+                    return;
+                }
+            };
+            QuantityPanel.ContentText.PreTextChangeEvent += DigitsCommonCheck;
+            QuantityPanel.ContentText.EndTakingInput += (old, current) =>
+            {
+                if (int.TryParse(current, out var value) && value >= 0)
+                {
+                    ShopItem.Quantity = value;
+                    PendingShopModified = true;
+                }
+                else
+                    QuantityPanel.ContentText.Text = old;
+            };
             QuantityPanel.Join(textPanel);
 
             UnlockConditionEntryPanel UnlockConditionPanel = new(ShopItem);
@@ -299,33 +392,85 @@ partial class PacketMakerUI
 
     class ShopSingleItemPanel : SingleItemPanel
     {
-        public ShopSingleItemPanel(Item item)
+        SUIItemSlot ItemSlot { get; set; }
+        SimpleShopItemGenerator SimpleShopItem { get; set; }
+        Action AppendCallBack { get; set; }
+        public ShopSingleItemPanel(Item item, SimpleShopItemGenerator simpleShopItem, Action appendCallBack)
         {
-            SetIcon(TextureAssets.Item[item.type]);
+            AppendCallBack = appendCallBack;
+            SimpleShopItem = simpleShopItem;
+            // SetIcon(TextureAssets.Item[item.type]);
+            ItemSlot = new SUIItemSlot();
+            ItemSlot.SetLeft(0, 0, 0.5f);
+            ItemSlot.SetTop(0, 0, 0.5f);
+            ItemSlot.Item = item;
+            ItemSlot.ItemAlign = new(.5f);
+            ItemSlot.Join(this);
+            ItemSlot.ItemInteractive = false;
+
+            SetIcon(TextureAssets.Item[ItemID.None]);
             SetText(item.Name);
 
             SetWidth(0, 0.19f);
             SetHeight(150f, 0);
+
+        }
+
+        public override void OnLeftMouseClick(UIMouseEvent evt)
+        {
+            if (ItemSlot.Item.ModItem is { } modItem)
+                SimpleShopItem.Type = modItem.FullName;
+            else
+                SimpleShopItem.Type = ItemSlot.Item.type.ToString();
+            PendingShopModified = true;
+            AppendCallBack?.Invoke();
+            Instance.PathTracker.ReturnToPreviousPage();
+            base.OnLeftMouseClick(evt);
         }
     }
 
     class UnlockConditionItemPanel : SingleItemPanel
     {
-        public UnlockConditionItemPanel(ConditionExtension condition) : base()
+        SimpleShopItemGenerator SimpleShopItem { get; set; }
+        string Condition { get; set; }
+        public UnlockConditionItemPanel(ConditionExtension condition, SimpleShopItemGenerator simpleShopItem) : base()
         {
-            if (IsChinese && condition.DisplayNameZH is { Length: > 0 } nameZh)
-                SetText(nameZh);
-            else if (condition.DisplayNameEN is { Length: > 0 } nameEn)
-                SetText(nameEn);
-            else if (condition.Name is { Length: > 0 } nameFile)
-                SetText(nameFile);
-
-            SetIcon(condition.IconTexture);
+            if (condition is null)
+            {
+                SetText(GetLocalizedTextValue("NoneCondition"));
+                SetIcon(ModAsset.NoneConditionIcon);
+                Condition = "";
+            }
+            else
+            {
+                SetText(condition.GetDisplayName());
+                SetIcon(condition.IconTexture);
+                Condition = condition.Name;
+            }
+            SimpleShopItem = simpleShopItem;
         }
-        public UnlockConditionItemPanel(UnlockCondition condition) : base()
+        public UnlockConditionItemPanel(UnlockCondition condition, SimpleShopItemGenerator simpleShopItem) : base()
         {
             SetText(condition.DisplayName);
             SetIcon(condition.Icon);
+            SimpleShopItem = simpleShopItem;
+            Condition = condition.Name;
         }
+
+        public override void OnLeftMouseClick(UIMouseEvent evt)
+        {
+            SimpleShopItem.UnlockCondition = Condition;
+            PendingShopModified = true;
+            Instance.PathTracker.ReturnToPreviousPage();
+            base.OnLeftMouseClick(evt);
+        }
+    }
+    class CommonEnvironment : GameEnvironment
+    {
+        public CommonEnvironment() : base(PointShopExtender.Instance, ModAsset.EnvironmentIconDefault, "Common", 0, default)
+        {
+
+        }
+        public override string DisplayName => GetLocalizedTextValue("CommonEnvironment");
     }
 }

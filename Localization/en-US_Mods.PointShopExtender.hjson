@@ -1,24 +1,3 @@
-Environments: {
-	Torch: 火把
-	Hammer: 锤子
-	TerraBlade: 泰拉刃
-	VortexTower: 星璇塔
-	AbyssLayer1: 深渊一层
-}
-
-UnlockCondition: {
-	DownedMoonLord: {
-		DisplayName: 击败月球领主
-		DescriptionName: ""
-		Description: 需要击败月球领主
-	}
-
-	DownedDevourerofGodsHead: {
-		DisplayName: 击败神明吞噬者
-		Description: 需要击败神明吞噬者
-	}
-}
-
 PacketMakerUI: {
 	CreateNew: Create New...
 	Shop: New Shop
@@ -46,6 +25,47 @@ PacketMakerUI: {
 	Unloaded: <Unloaded>
 	Price: Price
 	Quantity: Quantity
+	CommonEnvironment: Common
+	PacketExtensionViewPage: Packet Extension View
+	PacketInfoPage: Packet Info
+	ExtensionTypePage: Extension Type
+	ShopExtensionPage: Shop Extension
+	EnvironmentExtensionPage: Environment Extension
+	ConditionExtensionPage: Condition Extension
+	ShopInfoPage: Shop Info
+	EnvironmentInfoPage: Environment Info
+	ConditionInfoPage: Condition Info
+	ShopPreviewPage: Shop Preview
+	ShopItemInfoPage: Shop Item Info
+	ShopItemBrowser: Shop Item Browser
+	UnlockConditionPage: Unlock Condition
+	ConditionTypePage: Condition Type
+	ConditionVanillaPage: Vanilla Condition
+	ConditionModEnvironmentPage: Mod Biome
+	ConditionModBossPage: Mod Boss
+	GiveANamePlz: Plz give a name to the file first
+	ChooseAItemFirst: Plz choose a item first
+	Defeat: Defeat:
+	Satisfy: Satisfy:
+	Surround: Surround:
+	OpenFolder: Open Folder
+	ShowPath: Show the page path panel
+	AutoInfo: Auto fill info into env./cond.
+	OpenTutorial: Open Tutorial Page
+	ReturnToLast: Return to last page
+	ReturnToMenu: Return to menu
+	Delete: Delete
+	Favorited: Favorited
+	ReloadToDisable: Reload mods to Disable it
+	ReloadToEnable: Reload mods to Enable it
+	Disabled: Disabled
 }
 
 Keybinds.ShowPacketMakerUI.DisplayName: Show Packet Manager Interface
+
+Items: {
+	CreateNewDummyItem: {
+		DisplayName: New Item
+		Tooltip: ""
+	}
+}

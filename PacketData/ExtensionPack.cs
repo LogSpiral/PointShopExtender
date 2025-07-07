@@ -4,18 +4,21 @@ using ReLogic.Content;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Reflection.Emit;
+using System.Security.Cryptography;
 using Terraria;
 using Terraria.GameContent;
 
 namespace PointShopExtender.PacketData;
 
-public sealed class ExtensionPack
+public sealed class ExtensionPack : INamedFileClass
 {
+    public string Name => PackName;
     public string PackName { get; set; } = "";
-    public string DisplayName { get; private set; } = "";
-    public string DisplayNameEn { get; private set; } = "";
-    public string AuthorName { get; private set; } = "";
-    public string PackVersion { get; private set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string DisplayNameEn { get; set; } = "";
+    public string AuthorName { get; set; } = "";
+    public string PackVersion { get; set; } = "";
 
     public Asset<Texture2D> Icon { get; private set; } = ModAsset.PacketIconDefault;
 
@@ -23,6 +26,7 @@ public sealed class ExtensionPack
     public HashSet<EnvironmentExtension> EnvironmentExtensions { get; init; } = [];
     public HashSet<ConditionExtension> ConditionExtensions { get; init; } = [];
 
+    static readonly string RootPath = PointShopExtenderSystem.RootPath;
 
     public void Register()
     {
@@ -76,6 +80,7 @@ public sealed class ExtensionPack
             foreach (var file in Directory.GetFiles(conditionPath, "*.yaml"))
             {
                 var condition = ConditionExtension.FromFile(file);
+                condition.Packet = result;
                 result.ConditionExtensions.Add(condition);
             }
         #endregion
@@ -86,6 +91,7 @@ public sealed class ExtensionPack
             foreach (var file in Directory.GetFiles(environmentPath, "*.yaml"))
             {
                 var environment = EnvironmentExtension.FromFile(file);
+                environment.Packet = result;
                 result.EnvironmentExtensions.Add(environment);
             }
         #endregion
@@ -95,17 +101,18 @@ public sealed class ExtensionPack
         if (Directory.Exists(shopPath))
             foreach (var file in Directory.GetFiles(shopPath, "*.yaml"))
             {
-                var shop = ShopExtension.FromFile(file);
+                var shop = ShopExtension.FromFile(file,shopPath);
+                shop.Packet = result;
                 result.ShopExtensions.Add(shop);
             }
         #endregion
         return result;
     }
 
-    public void Save(string rootPath)
+    public void Save(string? rootPath = null)
     {
         #region 初始化
-        var packPath = Path.Combine(rootPath, PackName);
+        var packPath = Path.Combine(rootPath ?? RootPath, PackName);
         Directory.CreateDirectory(packPath);
         #endregion
 
@@ -119,7 +126,7 @@ public sealed class ExtensionPack
 
         #region 保存拓展环境
         foreach (var environment in EnvironmentExtensions)
-            environment.Save(Path.Combine(packPath, "Environments"));
+            environment.Save();
         #endregion
 
         #region 保存拓展商店
@@ -128,17 +135,17 @@ public sealed class ExtensionPack
         #endregion
     }
 
-    public void SaveInfo(string rootPath)
+    public void SaveInfo(string? rootPath = null)
     {
-        var packPath = Path.Combine(rootPath, PackName);
+        var packPath = Path.Combine(rootPath ?? RootPath, PackName);
         #region 保存文本信息
         File.WriteAllLines(Path.Combine(packPath, "PackInfo.txt"), [DisplayName, DisplayNameEn, AuthorName, PackVersion]);
         #endregion
     }
 
-    public void SaveIcon(string rootPath)
+    public void SaveIcon(string? rootPath = null)
     {
-        var packPath = Path.Combine(rootPath, PackName);
+        var packPath = Path.Combine(rootPath ?? RootPath, PackName);
         #region 保存图标
         if (Icon?.Value is { } iconTexture)
         {
@@ -151,10 +158,53 @@ public sealed class ExtensionPack
         #endregion
     }
 
-    public void SetIconAndSave(Asset<Texture2D> icon, string rootPath)
+    public void SetIconAndSave(Asset<Texture2D> icon, string? rootPath = null)
     {
         Icon = icon;
         SaveIcon(rootPath);
+    }
+
+    public void SetDispalyNameAndSave(string displayName, string? rootPath = null)
+    {
+        DisplayName = displayName;
+        SaveInfo(rootPath);
+    }
+    public void SetDispalyNameEnAndSave(string displayNameEn, string? rootPath = null)
+    {
+        DisplayNameEn = displayNameEn;
+        SaveInfo(rootPath);
+    }
+    public void SetAuthorNameAndSave(string authorName, string? rootPath = null)
+    {
+        AuthorName = authorName;
+        SaveInfo(rootPath);
+    }
+    public void SetVersionAndSave(string version, string? rootPath = null)
+    {
+        PackVersion = version;
+        SaveInfo(rootPath);
+    }
+
+    public void RenamePack(string newName)
+    {
+        if (string.IsNullOrEmpty(newName))
+            return;
+
+        var oldPath = Path.Combine(RootPath, PackName);
+        var newPath = Path.Combine(RootPath, newName);
+        if (!string.IsNullOrEmpty(PackName) && Directory.Exists(oldPath))
+        {
+            PackName = newName;
+            Directory.Move(oldPath, newPath);
+            return;
+        }
+        else
+        {
+            PackName = newName;
+            Save();
+            PointShopExtenderSystem.ExtensionPacks.Add(this);
+        }
+
     }
 
     public string GetDisplayName()

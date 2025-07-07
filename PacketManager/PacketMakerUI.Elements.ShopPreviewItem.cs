@@ -33,9 +33,10 @@ partial class PacketMakerUI
         public UIElementGroup BuyButton { get; protected set; }
         public SUIDividingLine SUIDividingLine { get; protected set; }
         public SUICoverView CoverView { get; protected set; }
-
-        public SimpleShopItemPreviewElement(SimpleShopItemGenerator simpleShopItem)
+        Action AppendToListCallBack { get; set; }
+        public SimpleShopItemPreviewElement(SimpleShopItemGenerator simpleShopItem,Action appendToListCallBack)
         {
+            AppendToListCallBack = appendToListCallBack;
             SimpleShopItem = simpleShopItem;
 
             LayoutType = LayoutType.Flexbox;
@@ -135,7 +136,7 @@ partial class PacketMakerUI
 
             SUIItemSlot = new SUIItemSlot
             {
-                Item = createNew ? new Item() : new Item(item.type, item.stack),
+                Item = createNew ? new Item(CreateNewDummyItem.ID()) : new Item(item.type, item.stack),
                 Border = 0,
                 BorderColor = Color.Transparent,
                 BackgroundColor = Color.Transparent,
@@ -159,11 +160,12 @@ partial class PacketMakerUI
             //if (BuyButton.IsMouseHovering)
             //    Main.hoverItemName = LanguageHelper.GetTextByPointShop("Buy").Value;
         }
+
         public SUIItemSlot SUIItemSlot;
 
         public override void OnLeftMouseClick(UIMouseEvent evt)
         {
-            Instance.SwitchToSingleItemEditPage(SimpleShopItem);
+            Instance.SwitchToSingleItemEditPage(SimpleShopItem,AppendToListCallBack);
         }
     }
 }

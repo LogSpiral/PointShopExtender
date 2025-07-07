@@ -4,8 +4,10 @@ using PointShopExtender.PacketData;
 using SilkyUIFramework;
 using SilkyUIFramework.BasicElements;
 using SilkyUIFramework.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Default;
@@ -20,8 +22,9 @@ partial class PacketMakerUI
     void SwitchToShopItemPage()
     {
         SwicthPageCommon();
+        SavePendingShop();
         SetNextTargetSize(new(700, 450));
-
+        PathTracker.AddNewPath("ShopExtensionPage", Instance.SwitchToShopItemPage);
 
         AddFilter();
 
@@ -38,7 +41,7 @@ partial class PacketMakerUI
             PendingUpdateList = false;
             itemList.Container.RemoveAllChildren();
             itemList.ScrollBar.ScrollByTop();
-            ShopItemElement createNew = new(new ShopExtension(), true);
+            ShopItemElement createNew = new(new ShopExtension() { Packet = CurrentPack }, true);
             itemList.Container.AppendChild(createNew);
             HashSet<ShopItemElement> inSearchItem = [];
             HashSet<ShopItemElement> others = [];
@@ -77,38 +80,41 @@ partial class PacketMakerUI
     void SwitchToShopInfoPage(ShopExtension shop)
     {
         SwicthPageCommon();
+        PendingShop = shop;
         SetNextTargetSize(new(700, 110));
-
+        PathTracker.AddNewPath("ShopInfoPage", () => Instance.SwitchToShopInfoPage(shop));
 
         ShopInfoElement shopInfoElement = new(shop);
         shopInfoElement.Join(MainPanel);
     }
 
-    void SwitchToShopContentPage(ShopExtension shop) 
+    void SwitchToShopContentPage(ShopExtension shop)
     {
         SwicthPageCommon();
         SetNextTargetSize(new(700, 450));
-
+        PathTracker.AddNewPath("ShopPreviewPage", () => Instance.SwitchToShopContentPage(shop));
+        ShopContentElement.ShopItemTableIsDirty = true;
         ShopContentElement shopContentElement = new(shop);
         shopContentElement.Join(MainPanel);
     }
 
-    void SwitchToSingleItemEditPage(SimpleShopItemGenerator simpleShopItemGenerator) 
+    void SwitchToSingleItemEditPage(SimpleShopItemGenerator simpleShopItemGenerator, Action appendToListCallBack)
     {
         SwicthPageCommon();
         SetNextTargetSize(new(760, 160));
+        PathTracker.AddNewPath("ShopItemInfoPage", () => Instance.SwitchToSingleItemEditPage(simpleShopItemGenerator, appendToListCallBack));
 
-        ShopItemEditorPage shopItemEditorPage = new(simpleShopItemGenerator);
+        ShopItemEditorPage shopItemEditorPage = new(simpleShopItemGenerator, appendToListCallBack);
         shopItemEditorPage.Join(MainPanel);
     }
 
-    void SwitchToSingleShopItemPage(SimpleShopItemGenerator simpleShopItem) 
+    void SwitchToSingleShopItemPage(SimpleShopItemGenerator simpleShopItem, Action appendCallback)
     {
         SwicthPageCommon();
 
         AddFilter();
         SetNextTargetSize(new(700, 450));
-
+        PathTracker.AddNewPath("ShopItemBrowser", () => Instance.SwitchToSingleShopItemPage(simpleShopItem, appendCallback));
 
         SUIScrollView itemList = new();
         itemList.SetMargin(8f);
@@ -123,14 +129,16 @@ partial class PacketMakerUI
             PendingUpdateList = false;
             itemList.Container.RemoveAllChildren();
             itemList.ScrollBar.ScrollByTop();
-            HashSet<ShopSingleItemPanel> inSearchItem = [];
-            HashSet<ShopSingleItemPanel> others = [];
+            int counter = 0;
+            HashSet<Item> inSearchItem = [];
+            HashSet<Item> others = [];
+
             foreach (var pair in ContentSamples.ItemsByType)
             {
                 var item = pair.Value;
                 if (ItemID.Sets.Deprecated[pair.Key]) continue;
-                if (pair.Key == ItemID.None || pair.Key == ModContent.ItemType<UnloadedItem>()) continue;
-                List<string> matchingList = [item.Name,pair.Key.ToString()];
+                if (pair.Key == ItemID.None || pair.Key == ModContent.ItemType<UnloadedItem>() || pair.Key == CreateNewDummyItem.ID()) continue;
+                List<string> matchingList = [item.Name, pair.Key.ToString()];
                 bool find = false;
                 if (!string.IsNullOrEmpty(CurrentSearchingText))
                     foreach (var match in matchingList)
@@ -142,27 +150,33 @@ partial class PacketMakerUI
                         }
                     }
                 if (find)
-                    inSearchItem.Add(new(pair.Value));
+                    inSearchItem.Add(pair.Value);
                 else
-                    others.Add(new(pair.Value));
+                    others.Add(pair.Value);
             }
             foreach (var item in inSearchItem)
             {
-                item.BorderColor = SUIColor.Highlight;
-                itemList.Container.AppendChild(item);
+                var itemPanel = new ShopSingleItemPanel(item, simpleShopItem, appendCallback) { BorderColor = SUIColor.Highlight };
+                itemList.Container.AppendChild(itemPanel);
+                counter++;
+                if (counter >= 500) break;
             }
             foreach (var item in others)
-                itemList.Container.AppendChild(item);
+            {
+                if (counter >= 500) break;
+                counter++;
+                itemList.Container.AppendChild(new ShopSingleItemPanel(item, simpleShopItem, appendCallback));
+            }
         };
     }
 
-    void SwitchToUnlockConditionPage() 
+    void SwitchToUnlockConditionPage(SimpleShopItemGenerator simpleShopItem)
     {
         SwicthPageCommon();
 
         AddFilter();
         SetNextTargetSize(new(700, 450));
-
+        PathTracker.AddNewPath("UnlockConditionPage", () => Instance.SwitchToUnlockConditionPage(simpleShopItem));
 
         SUIScrollView itemList = new();
         itemList.SetMargin(8f);
@@ -179,7 +193,8 @@ partial class PacketMakerUI
             itemList.ScrollBar.ScrollByTop();
             HashSet<UnlockConditionItemPanel> inSearchItem = [];
             HashSet<UnlockConditionItemPanel> others = [];
-            foreach (var condition in PointShopSystem.UnlockConditions.Values) 
+            HashSet<string> loadedCondition = [];
+            foreach (var condition in PointShopSystem.UnlockConditions.Values)
             {
                 List<string> matchingList = [condition.DisplayName, condition.Name];
                 bool find = false;
@@ -193,12 +208,14 @@ partial class PacketMakerUI
                         }
                     }
                 if (find)
-                    inSearchItem.Add(new(condition));
+                    inSearchItem.Add(new(condition, simpleShopItem));
                 else
-                    others.Add(new(condition));
+                    others.Add(new(condition, simpleShopItem));
+                loadedCondition.Add(condition.Name);
             }
             foreach (var condition in CurrentPack.ConditionExtensions)
             {
+                if (loadedCondition.Contains(condition.Name)) continue;
                 List<string> matchingList = [condition.Name, condition.DisplayNameEN, condition.DisplayNameZH];
                 bool find = false;
                 if (!string.IsNullOrEmpty(CurrentSearchingText))
@@ -211,9 +228,9 @@ partial class PacketMakerUI
                         }
                     }
                 if (find)
-                    inSearchItem.Add(new(condition));
+                    inSearchItem.Add(new(condition, simpleShopItem));
                 else
-                    others.Add(new(condition));
+                    others.Add(new(condition, simpleShopItem));
             }
 
             foreach (var item in inSearchItem)
@@ -221,6 +238,7 @@ partial class PacketMakerUI
                 item.BorderColor = SUIColor.Highlight;
                 itemList.Container.AppendChild(item);
             }
+            itemList.Container.AppendChild(new UnlockConditionItemPanel(default(ConditionExtension), simpleShopItem));
             foreach (var item in others)
                 itemList.Container.AppendChild(item);
         };

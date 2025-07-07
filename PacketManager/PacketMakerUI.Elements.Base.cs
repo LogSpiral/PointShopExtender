@@ -12,10 +12,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
+using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.Utilities.FileBrowser;
 
@@ -25,8 +27,8 @@ partial class PacketMakerUI
 {
     class ContentTextEditablePanel : UIElementGroup
     {
-        UITextView ContentName { get; set; }
-        SUIEditText ContentText { get; set; }
+        public UITextView ContentName { get; private set; }
+        public SUIEditText ContentText { get; private set; }
         public ContentTextEditablePanel(string Key, string currentValue)
         {
             SetWidth(0, 1);
@@ -51,18 +53,22 @@ partial class PacketMakerUI
             contentContainer.BackgroundColor = Color.Black * .25f;
             contentContainer.Border = 2f;
             contentContainer.BorderColor = Color.Black;
+            contentContainer.GotFocus += (evt, element) =>
+            {
+                if (evt.Source != element) return;
+                contentContainer.SilkyUI.SetFocus(ContentText);
+            };
 
             ContentText = new SUIEditText();
             ContentText.Text = currentValue ?? "";
+            //ContentText.CursorIndex = currentValue.Length;
             ContentText.SetLeft(0, 0, 0.5f);
+            ContentText.SetSize(0, 0, 1, 1);
 
             nameContainer.Join(this);
             contentContainer.Join(this);
             ContentName.Join(nameContainer);
             ContentText.Join(contentContainer);
-
-            ContentText.OnTextChanged += OnTextChanged;
-            ContentText.OnEnterKeyDown += OnEnterKeyDown;
 
         }
         public void SetBorderRadius(Vector4 radius)
@@ -70,15 +76,14 @@ partial class PacketMakerUI
             ContentName.Parent?.BorderRadius = new Vector4(radius.X, 0, radius.Z, 0);
             ContentText.Parent?.BorderRadius = new Vector4(0, radius.Y, 0, radius.W);
         }
-        public event Action OnTextChanged;
-        public event Action OnEnterKeyDown;
     }
     class ConditionEditEntryPanel : UIElementGroup
     {
         UITextView ContentName { get; set; }
         UITextView ConditionText { get; set; }
         RealCondition RealCondition { get; set; }
-        public ConditionEditEntryPanel(RealCondition realCondition, object owner)
+        ExtensionWithInfo Owner { get; set; }
+        public ConditionEditEntryPanel(RealCondition realCondition, ExtensionWithInfo owner)
         {
             SetWidth(0, 1);
             SetHeight(40, 0);
@@ -91,8 +96,13 @@ partial class PacketMakerUI
             nameContainer.BorderColor = Color.Black;
             nameContainer.LeftMouseClick += delegate
             {
-                RealCondition ??= new RealCondition();
-                Instance.SwitchToRealConditionEditor(RealCondition, owner);
+                if (string.IsNullOrEmpty(owner.Name))
+                {
+                    GiveANameHint();
+                    return;
+                }
+                RealCondition ??= new RealCondition() { Owner = owner };
+                Instance.SwitchToRealConditionEditor(RealCondition);
             };
 
             ContentName = new UITextView();
@@ -108,21 +118,29 @@ partial class PacketMakerUI
             contentContainer.BorderColor = Color.Black;
             contentContainer.LeftMouseClick += delegate
             {
-                RealCondition ??= new RealCondition();
+                if (string.IsNullOrEmpty(owner.Name))
+                {
+                    GiveANameHint();
+                    return;
+                }
+                RealCondition ??= new RealCondition() { Owner = owner };
                 switch (RealCondition.ConditionType)
                 {
                     case ConditionType.Vanilla:
-                        Instance.SwitchToVanillaConditions(RealCondition, owner);
+                        Instance.PathTracker.AddNewPath("ConditionTypePage", () => Instance.SwitchToRealConditionEditor(RealCondition));
+                        Instance.SwitchToVanillaConditions(RealCondition);
                         break;
 
                     case ConditionType.ModEnvironment:
-                        Instance.SwitchToModdedEnvironments(RealCondition, owner);
+                        Instance.PathTracker.AddNewPath("ConditionTypePage", () => Instance.SwitchToRealConditionEditor(RealCondition));
+                        Instance.SwitchToModdedEnvironments(RealCondition);
                         break;
                     case ConditionType.ModBoss:
-                        Instance.SwitchToModdedBosses(RealCondition, owner);
+                        Instance.PathTracker.AddNewPath("ConditionTypePage", () => Instance.SwitchToRealConditionEditor(RealCondition));
+                        Instance.SwitchToModdedBosses(RealCondition);
                         break;
                     default:
-                        Instance.SwitchToRealConditionEditor(RealCondition, owner);
+                        Instance.SwitchToRealConditionEditor(RealCondition);
                         break;
                 }
             };
@@ -150,8 +168,7 @@ partial class PacketMakerUI
 
         public override void OnLeftMouseClick(UIMouseEvent evt)
         {
-            RealCondition ??= new RealCondition();
-
+            RealCondition ??= new RealCondition() { Owner = Owner };
         }
     }
     class ContentSingleTextPanel : UIElementGroup
@@ -186,9 +203,10 @@ partial class PacketMakerUI
     {
         SUIImage ConditionIcon { get; set; }
         UITextView ConditionName { get; set; }
-
+        SimpleShopItemGenerator SimpleShopItem { get; set; }
         public UnlockConditionEntryPanel(SimpleShopItemGenerator simpleShopItem)
         {
+            SimpleShopItem = simpleShopItem;
             string unlockConditionText = simpleShopItem.UnlockCondition ?? "";
             string conditionName = "";
             Asset<Texture2D> iconImage = ModAsset.UnlockConditionIconDefault;
@@ -224,6 +242,8 @@ partial class PacketMakerUI
 
             ConditionIcon = new SUIImage(iconImage);
             ConditionIcon.SetLeft(0, 0, 0.5f);
+            ConditionIcon.SetTop(0, 0, 0.5f);
+            ConditionIcon.ImageAlign = new Vector2(.5f);
 
             var contentContainer = new UIElementGroup();
             contentContainer.SetWidth(0, .67f);
@@ -250,10 +270,110 @@ partial class PacketMakerUI
 
         public override void OnLeftMouseClick(UIMouseEvent evt)
         {
-            Instance.SwitchToUnlockConditionPage();
+            if (string.IsNullOrEmpty(SimpleShopItem.Type))
+            {
+                ChooseAItemHint();
+                return;
+            }
+            Instance.SwitchToUnlockConditionPage(SimpleShopItem);
             base.OnLeftMouseClick(evt);
         }
     }
+
+    class PathTrackerPanel : UIElementGroup
+    {
+        public SUIScrollView PathList { get; set; }
+        public bool InMenu => BackActions.Count < 2;
+        List<Action> BackActions { get; init; } = [];
+        List<UITextView> PathTexts { get; init; } = [];
+
+        public PathTrackerPanel()
+        {
+            SetWidth(0, 1);
+            SetHeight(0, 40);
+            SetMargin(0);
+            SetGap(0);
+            BackgroundColor = Color.Black * .5f;
+            BorderColor = Color.Black;
+            BackgroundColor = BorderColor = default;
+            Border = 0f;
+
+
+            PathList = new(Direction.Horizontal);
+            PathList.SetSize(0, 0, 1, 1);
+            PathList.SetMargin(0);
+            PathList.Join(this);
+        }
+        public void AddNewPath(string Key, Action switchToPageAction)
+        {
+            UITextView arrow = new UITextView();
+            arrow.Text = ">";
+            arrow.SetSize(30, 40, 0, 0);
+            arrow.SetTop(-5, 0);
+            arrow.Join(PathList.Container);
+            UITextView textView = new UITextView();
+            textView.Text = GetLocalizedTextValue(Key);
+            textView.OnUpdate += delegate
+            {
+                textView.TextColor = Color.White;
+                if (PathTexts[^1] != textView)
+                {
+                    var targetColor = Color.Lerp(Color.LightGray, Color.Gray, 0.5f + 0.5f * MathF.Cos(Main.GlobalTimeWrappedHourly * 2.5f + textView.Bounds.X * .02f));
+                    textView.TextColor = textView.HoverTimer.Lerp(targetColor, SUIColor.Highlight);
+                }
+                textView.RecalculateHeight();
+            };
+            textView.LeftMouseClick += delegate
+            {
+                if (PathTexts[^1] == textView) return;
+                var index = PathTexts.FindIndex(text => text == textView);
+                int count = 0;
+                if (index != -1)
+                {
+                    count = PathTexts.Count - index;
+                    PathTexts.RemoveRange(index, count);
+                    BackActions.RemoveRange(index, count);
+                }
+                var list = PathList.Container.Children;
+                for (int n = 0; n < count * 2; n++)
+                    PathList.Container.RemoveChild(list[^1]);
+                switchToPageAction?.Invoke();
+            };
+            var pixelWidth = FontAssets.MouseText.Value.MeasureString(textView.Text).X;
+            textView.SetSize(pixelWidth, 40, 0, 0);
+            textView.SetTop(-5, 0);
+            textView.Join(PathList.Container);
+            PathTexts.Add(textView);
+            BackActions.Add(switchToPageAction);
+        }
+        public void ReturnToPreviousPage(int pageCount = 1)
+        {
+            pageCount++;
+            if (BackActions.Count < pageCount) return;
+            var backAction = BackActions[^pageCount];
+            var list = PathList.Container.Children;
+            for (int n = 0; n < pageCount * 2; n++)
+                PathList.Container.RemoveChild(list[^1]);
+
+            int total = PathTexts.Count;
+            PathTexts.RemoveRange(total - pageCount, pageCount);
+            BackActions.RemoveRange(total - pageCount, pageCount);
+            backAction?.Invoke();
+        }
+        public void ReturnToMenu()
+        {
+            if (BackActions.Count == 0) return;
+            var backAction = BackActions[0];
+
+            BackActions.Clear();
+            PathList.Container.RemoveAllChildren();
+            PathTexts.Clear();
+
+            backAction?.Invoke();
+        }
+
+    }
+
     abstract class SingleItemPanel : UIElementGroup
     {
         protected readonly static Asset<Texture2D> CreateNewIcon = ModAsset.CreateNew;
@@ -298,7 +418,6 @@ partial class PacketMakerUI
             Icon.Join(this);
             Text.Join(this);
         }
-
         protected override void UpdateStatus(GameTime gameTime)
         {
             HandleMouseOverColorPanel(this);

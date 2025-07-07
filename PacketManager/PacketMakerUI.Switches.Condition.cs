@@ -18,7 +18,7 @@ partial class PacketMakerUI
 
         AddFilter();
         SetNextTargetSize(new(700, 450));
-
+        PathTracker.AddNewPath("ConditionExtensionPage", Instance.SwitchToConditionItemPage);
 
         SUIScrollView itemList = new();
         itemList.SetMargin(8f);
@@ -33,7 +33,7 @@ partial class PacketMakerUI
             PendingUpdateList = false;
             itemList.Container.RemoveAllChildren();
             itemList.ScrollBar.ScrollByTop();
-            ConditionItemElement createNew = new(new ConditionExtension(), true);
+            ConditionItemElement createNew = new(new ConditionExtension() { Packet = CurrentPack, Condition = "", RealCondition = new() }, true);
             itemList.Container.AppendChild(createNew);
             HashSet<ConditionItemElement> inSearchItem = [];
             HashSet<ConditionItemElement> others = [];
@@ -72,7 +72,7 @@ partial class PacketMakerUI
     {
         SwicthPageCommon();
         SetNextTargetSize(new(800, 320));
-
+        PathTracker.AddNewPath("ConditionInfoPage", () => Instance.SwitchToConditionInfoPage(condition));
 
         ConditionInfoElement conditionInfoElement = new(condition);
         conditionInfoElement.Join(MainPanel);

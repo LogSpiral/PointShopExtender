@@ -6,46 +6,40 @@ using ReLogic.Content;
 using System;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
+using Terraria;
+using Terraria.IO;
 using Terraria.Localization;
 using Terraria.ModLoader;
-using YamlDotNet.Core.Tokens;
 using YamlDotNet.Serialization;
 
 namespace PointShopExtender.PacketData;
 
-public class EnvironmentExtension
+public sealed class EnvironmentExtension : ExtensionWithInfo
 {
-    public string Name { get; set; }
-    public string DisplayNameZH { get; set; }
-    public string DisplayNameEN { get; set; }
-    public string Icon { get; set; }
-    public string Condition { get; set; }
-    public int Priority { get; set; }
-    public string ColorText { get; set; }
 
-    [YamlIgnore]
-    public Asset<Texture2D> IconTexture { get; set; } = ModAsset.EnvironmentIconDefault;
-
-    [YamlIgnore]
-    public RealCondition RealCondition { get; set; }
+    public int Priority { get; set; } = 0;
+    public string ColorText { get; set; } = "FFFFFF";
 
     [YamlIgnore]
     public Color Color { get; set; }
+
+    protected override string Category => "Environments";
 
     public void Register()
     {
         PointShopExtenderSystem.EnvironmentDisplayNameZH[Name] = DisplayNameZH ?? Name;
         PointShopExtenderSystem.EnvironmentDisplayNameEN[Name] = DisplayNameEN ?? Name;
-        Language.GetOrRegister($"Mods.PointShopExtender.Environments.{Name}", () => Name);
+        // Language.GetOrRegister($"Mods.PointShopExtender.Environments.{Name}", () => Name);
 
-        PointShopSystem.RegisterGameEnvironment(PointShopExtender.Instance, IconTexture, Name, player => RealCondition.ToFunc().Invoke(), Priority, Color);
+        PointShopSystem.RegisterGameEnvironment(ToGameEnvironmentExtended());
+        //PointShopSystem.RegisterGameEnvironment(PointShopExtender.Instance, IconTexture, Name, player => RealCondition.ToFunc().Invoke(), Priority, Color);
     }
 
     public static EnvironmentExtension FromFile(string filePath)
     {
         var result = PointShopExtenderSystem.YamlDeserializer.Deserialize<EnvironmentExtension>(File.ReadAllText(filePath));
         result.RealCondition = RealCondition.FromString(result.Condition);
+        result.RealCondition.Owner = result;
         #region 生成颜色
         result.Color = Color.White;
         if (uint.TryParse(result.ColorText, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var packetValue))
@@ -64,36 +58,57 @@ public class EnvironmentExtension
         #endregion
 
         #region 加载图标
-        var iconPath = result.Icon;
-        if (!ModContent.RequestIfExists<Texture2D>(iconPath, out var icon))
-        {
-            if (!File.Exists(iconPath))
-                iconPath = Path.Combine(Path.GetFullPath(filePath)[..^Path.GetFileName(filePath).Length], $"{(iconPath == "" ? result.Name : iconPath)}.png");
-
-            using var stream = File.OpenRead(iconPath);
-            icon = PointShopExtender.Instance.Assets.CreateUntracked<Texture2D>(stream, iconPath);
-        }
+        if (!result.TryGetIconViaPath(filePath, out var icon))
+            icon = ModAsset.EnvironmentIconDefault;
         result.IconTexture = icon;
         #endregion
 
         return result;
     }
 
-    public void Save(string path)
+    public void SetPriorityAndSave(int priority)
     {
-        Directory.CreateDirectory(path);
-        var content = PointShopExtenderSystem.YamlSerializer.Serialize(this, typeof(EnvironmentExtension));
-        File.WriteAllText(Path.Combine(path,Name + ".yaml"), content);
+        Priority = priority;
+        SaveInfo();
     }
 
-    public string GetDisplayName()
+    public void SetColorAndSave(Color color)
     {
-        if (PacketMakerUI.IsChinese && DisplayNameZH is { Length: > 0 } nameZh)
-            return nameZh;
-        else if (DisplayNameEN is { Length: > 0 } nameEn)
-            return nameEn;
-        //else if (Name is { Length: > 0 } nameFile)
-        //return nameFile;
-        return Name;
+        Color = color;
+        ColorText = color.Hex3();
+        SaveInfo();
+    }
+
+    public void SetColorTextAndSave(string colorText)
+    {
+        if (!uint.TryParse(colorText, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var packetValue))
+            return;
+        uint b = packetValue & 0xFFu;
+        uint g = (packetValue >> 8) & 0xFFu;
+        uint r = (packetValue >> 16) & 0xFFu;
+        Color color = Color.White;
+        color.R = (byte)r;
+        color.G = (byte)g;
+        color.B = (byte)b;
+        Color = color;
+        ColorText = colorText;
+        SaveInfo();
+    }
+
+    public GameEnvironment ToGameEnvironmentExtended()
+    {
+        return new ExtendedEnvironment(this);
+    }
+
+    protected override void OnCreateNew() => Packet.EnvironmentExtensions.Add(this);
+
+    class ExtendedEnvironment : GameEnvironment
+    {
+        public EnvironmentExtension EnvironmentExtension { get; set; }
+        public ExtendedEnvironment(EnvironmentExtension extension) : base(PointShopExtender.Instance, extension.IconTexture, extension.Name, extension.Priority, extension.Color)
+        {
+            EnvironmentExtension = extension;
+        }
+        public override string DisplayName => EnvironmentExtension.GetDisplayName();
     }
 }
