@@ -78,9 +78,11 @@ partial class PacketMakerUI
         protected override void OnInitializeTextPanel(UIElementGroup textPanel)
         {
             ContentTextEditablePanel FileNamePanel = new("FileName", Shop.Name);
-            FileNamePanel.ContentText.PreTextChangeEvent += FileNameCommonCheck;
-            FileNamePanel.ContentText.EndTakingInput += (old, current) =>
+            FileNamePanel.ContentText.OnInput += FileNameCommonCheck;
+            FileNamePanel.ContentText.EndTakingInput += (sender, arg) =>
             {
+                var current = arg.NewValue;
+                var old = arg.OldValue;
                 if (string.IsNullOrEmpty(current)) FileNamePanel.ContentText.Text = old;
                 Shop.RenameFile(current);
             };
@@ -340,9 +342,11 @@ partial class PacketMakerUI
                     return;
                 }
             };
-            PricePanel.ContentText.PreTextChangeEvent += DigitsCommonCheck;
-            PricePanel.ContentText.EndTakingInput += (old, current) =>
+            PricePanel.ContentText.OnInput += DigitsCommonCheck;
+            PricePanel.ContentText.EndTakingInput += (sender, arg) =>
             {
+                var current = arg.NewValue;
+                var old = arg.OldValue;
                 if (int.TryParse(current, out var value) && value >= 0)
                 {
                     ShopItem.Prices = value;
@@ -365,9 +369,11 @@ partial class PacketMakerUI
                     return;
                 }
             };
-            QuantityPanel.ContentText.PreTextChangeEvent += DigitsCommonCheck;
-            QuantityPanel.ContentText.EndTakingInput += (old, current) =>
+            QuantityPanel.ContentText.OnInput += DigitsCommonCheck;
+            QuantityPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
+                var current = arg.NewValue;
+                var old = arg.OldValue;
                 if (int.TryParse(current, out var value) && value >= 0)
                 {
                     ShopItem.Quantity = value;

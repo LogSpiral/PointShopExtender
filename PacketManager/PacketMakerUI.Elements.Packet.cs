@@ -168,9 +168,11 @@ partial class PacketMakerUI
         protected override void OnInitializeTextPanel(UIElementGroup textPanel)
         {
             ContentTextEditablePanel PacketNamePanel = new("FileName", Packet.PackName);
-            PacketNamePanel.ContentText.PreTextChangeEvent += FileNameCommonCheck;
-            PacketNamePanel.ContentText.EndTakingInput += (old, current) =>
+            PacketNamePanel.ContentText.OnInput += FileNameCommonCheck;
+            PacketNamePanel.ContentText.EndTakingInput += (sender, arg) =>
             {
+                var current = arg.NewValue;
+                var old = arg.OldValue;
                 if (string.IsNullOrEmpty(current)) PacketNamePanel.ContentText.Text = old;
                 Packet.RenamePack(current);
             };
@@ -179,32 +181,36 @@ partial class PacketMakerUI
 
             ContentTextEditablePanel DisplayNamePanel = new("DisplayName", Packet.DisplayName);
             DisplayNamePanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Packet, elem);
-            DisplayNamePanel.ContentText.EndTakingInput += (old, current) =>
+            DisplayNamePanel.ContentText.EndTakingInput += (sender, arg) =>
             {
+                var current = arg.NewValue;
                 Packet.SetDispalyNameAndSave(current);
             };
             DisplayNamePanel.Join(textPanel);
 
             ContentTextEditablePanel DisplayNameEnPanel = new("DisplayNameEn", Packet.DisplayNameEn);
             DisplayNameEnPanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Packet, elem);
-            DisplayNameEnPanel.ContentText.EndTakingInput += (old, current) =>
+            DisplayNameEnPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
+                var current = arg.NewValue;
                 Packet.SetDispalyNameEnAndSave(current);
             };
             DisplayNameEnPanel.Join(textPanel);
 
             ContentTextEditablePanel AuthorNamePanel = new("AuthorName", Packet.AuthorName);
             AuthorNamePanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Packet, elem);
-            AuthorNamePanel.ContentText.EndTakingInput += (old, current) =>
+            AuthorNamePanel.ContentText.EndTakingInput += (sender, arg) =>
             {
+                var current = arg.NewValue;
                 Packet.SetAuthorNameAndSave(current);
             };
             AuthorNamePanel.Join(textPanel);
 
             ContentTextEditablePanel VersionPanel = new("Version", Packet.PackVersion);
             VersionPanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Packet, elem);
-            VersionPanel.ContentText.EndTakingInput += (old, current) =>
+            VersionPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
+                var current = arg.NewValue;
                 Packet.SetVersionAndSave(current);
             };
             //VersionPanel.SetBorderRadius(new(0, 0, 0, 24));

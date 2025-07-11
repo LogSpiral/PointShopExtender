@@ -67,9 +67,11 @@ partial class PacketMakerUI
         {
             ContentTextEditablePanel FileNamePanel = new("FileName", Condition.Name);
             FileNamePanel.SetBorderRadius(new(24, 0, 0, 0));
-            FileNamePanel.ContentText.PreTextChangeEvent += FileNameCommonCheck;
-            FileNamePanel.ContentText.EndTakingInput += (old, current) =>
+            FileNamePanel.ContentText.OnInput += FileNameCommonCheck;
+            FileNamePanel.ContentText.EndTakingInput += (sender,arg) =>
             {
+                var current = arg.NewValue;
+                var old = arg.OldValue;
                 if (string.IsNullOrEmpty(current)) FileNamePanel.ContentText.Text = old;
                 Condition.RenameFile(current);
             };
@@ -77,32 +79,36 @@ partial class PacketMakerUI
 
             ContentTextEditablePanel DisplayNamePanel = new("DisplayName", Condition.DisplayNameZH);
             DisplayNamePanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Condition, elem);
-            DisplayNamePanel.ContentText.EndTakingInput += (old, current) =>
+            DisplayNamePanel.ContentText.EndTakingInput += (sender, arg) =>
             {
+                var current = arg.NewValue;
                 Condition.SetDisplayNameAndSave(current);
             };
             DisplayNamePanel.Join(textPanel);
 
             ContentTextEditablePanel DisplayNameEnPanel = new("DisplayNameEn", Condition.DisplayNameEN);
             DisplayNameEnPanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Condition, elem);
-            DisplayNameEnPanel.ContentText.EndTakingInput += (old, current) =>
+            DisplayNameEnPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
+                var current = arg.NewValue;
                 Condition.SetDisplayNameEnAndSave(current);
             };
             DisplayNameEnPanel.Join(textPanel);
 
             ContentTextEditablePanel DescriptionPanel = new("Description", Condition.DescriptionZH);
             DescriptionPanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Condition, elem);
-            DescriptionPanel.ContentText.EndTakingInput += (old, current) =>
+            DescriptionPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
+                var current = arg.NewValue;
                 Condition.SetDisplayNameEnAndSave(current);
             };
             DescriptionPanel.Join(textPanel);
 
             ContentTextEditablePanel DescriptionEnPanel = new("DescriptionEn", Condition.DescriptionEN);
             DescriptionEnPanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Condition, elem);
-            DescriptionEnPanel.ContentText.EndTakingInput += (old, current) =>
+            DescriptionEnPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
+                var current = arg.NewValue;
                 Condition.SetDisplayNameEnAndSave(current);
             };
             DescriptionEnPanel.Join(textPanel);

@@ -300,6 +300,7 @@ partial class PacketMakerUI
 
 
             PathList = new(Direction.Horizontal);
+            SetScrollViewDirection(PathList, Direction.Horizontal);
             PathList.SetSize(0, 0, 1, 1);
             PathList.SetMargin(0);
             PathList.Join(this);
