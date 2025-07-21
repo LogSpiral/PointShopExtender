@@ -24,7 +24,7 @@ public class ShopExtension : ExtensionBase
     {
         var result = new ShopExtension();
         var fileContent = File.ReadAllText(file);
-        result.SimpleShopData = ShopItemsRegistrar.GetShopData(fileContent);
+        result.SimpleShopData = ShopItemsRegistrar.ConvertYamlStringToShopData(fileContent);
         result.Name = Path.GetFileNameWithoutExtension(file);
 
         var iconPath = Path.Combine(folderPath, result.Name + "_Icon.png");
