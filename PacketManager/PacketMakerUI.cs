@@ -293,7 +293,7 @@ public partial class PacketMakerUI : BasicBody
             FitWidth = false,
             FitHeight = false,
         }.Join(searchBar);
-        searchBox.OnTextChanged += () =>
+        searchBox.ContentChanged += (sender, e) =>
         {
             PendingUpdateList = true;
             CurrentSearchingText = searchBox.Text;

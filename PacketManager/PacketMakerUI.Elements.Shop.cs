@@ -68,17 +68,22 @@ partial class PacketMakerUI
         {
             Shop.SetIconAndSave(texture);
         }
-        protected override void OpenFileDialogueToSelectIcon(UIMouseEvent evt, UIView listeningElement)
+        protected override void OpenFileDialogueToSelectIcon(UIView listeningElement, UIMouseEvent evt)
         {
             if (string.IsNullOrEmpty(Shop.Name))
                 GiveANameHint();
             else
-                base.OpenFileDialogueToSelectIcon(evt, listeningElement);
+                base.OpenFileDialogueToSelectIcon(listeningElement, evt);
         }
         protected override void OnInitializeTextPanel(UIElementGroup textPanel)
         {
             ContentTextEditablePanel FileNamePanel = new("FileName", Shop.Name);
-            FileNamePanel.ContentText.OnInput += FileNameCommonCheck;
+            FileNamePanel.ContentText.ContentChanging += (sender, e) =>
+            {
+                var text = e.NewText;
+                FileNameCommonCheck(ref text);
+                return text;
+            };
             FileNamePanel.ContentText.EndTakingInput += (sender, arg) =>
             {
                 var current = arg.NewValue;
@@ -325,7 +330,7 @@ partial class PacketMakerUI
             ImagePanel.SetTop(0, 0.1f, 0);
             TextPanel.SetWidth(-120, 0.9f);
         }
-        protected override void OpenFileDialogueToSelectIcon(UIMouseEvent evt, UIView listeningElement)
+        protected override void OpenFileDialogueToSelectIcon(UIView listeningElement, UIMouseEvent evt)
         {
             Instance.SwitchToSingleShopItemPage(ShopItem, AppendCallBack);
         }
@@ -333,16 +338,21 @@ partial class PacketMakerUI
         protected override void OnInitializeTextPanel(UIElementGroup textPanel)
         {
             ContentTextEditablePanel PricePanel = new("Price", ShopItem.Prices.ToString());
-            PricePanel.ContentText.GotFocus += (evt, elem) =>
+            PricePanel.ContentText.GotFocus += (sender, evt) =>
             {
                 if (string.IsNullOrEmpty(ShopItem.Type))
                 {
-                    elem.SilkyUI.SetFocus(null);
+                    sender.SilkyUI.SetFocus(null);
                     ChooseAItemHint();
                     return;
                 }
             };
-            PricePanel.ContentText.OnInput += DigitsCommonCheck;
+            PricePanel.ContentText.ContentChanging += (sender, e) =>
+            {
+                var text = e.NewText;
+                DigitsCommonCheck(ref text);
+                return text;
+            };
             PricePanel.ContentText.EndTakingInput += (sender, arg) =>
             {
                 var current = arg.NewValue;
@@ -360,16 +370,21 @@ partial class PacketMakerUI
             PricePanel.Join(textPanel);
 
             ContentTextEditablePanel QuantityPanel = new("Quantity", ShopItem.Quantity.ToString());
-            QuantityPanel.ContentText.GotFocus += (evt, elem) =>
+            QuantityPanel.ContentText.GotFocus += (sender, evt) =>
             {
                 if (string.IsNullOrEmpty(ShopItem.Type))
                 {
-                    elem.SilkyUI.SetFocus(null);
+                    sender.SilkyUI.SetFocus(null);
                     ChooseAItemHint();
                     return;
                 }
             };
-            QuantityPanel.ContentText.OnInput += DigitsCommonCheck;
+            QuantityPanel.ContentText.ContentChanging += (sender, e) =>
+            {
+                var text = e.NewText;
+                DigitsCommonCheck(ref text);
+                return text;
+            };
             QuantityPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
                 var current = arg.NewValue;

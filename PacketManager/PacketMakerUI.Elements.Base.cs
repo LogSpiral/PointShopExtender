@@ -53,9 +53,9 @@ partial class PacketMakerUI
             contentContainer.BackgroundColor = Color.Black * .25f;
             contentContainer.Border = 2f;
             contentContainer.BorderColor = Color.Black;
-            contentContainer.GotFocus += (evt, element) =>
+            contentContainer.GotFocus += (sender, evt) =>
             {
-                if (evt.Source != element) return;
+                if (evt.Source != sender) return;
                 contentContainer.SilkyUI.SetFocus(ContentText);
             };
 
@@ -301,6 +301,7 @@ partial class PacketMakerUI
 
             PathList = new(Direction.Horizontal);
             SetScrollViewDirection(PathList, Direction.Horizontal);
+            PathList.Container.FlexDirection = FlexDirection.Row;
             PathList.SetSize(0, 0, 1, 1);
             PathList.SetMargin(0);
             PathList.Join(this);
@@ -516,7 +517,7 @@ partial class PacketMakerUI
             EditHint.Join(this);
         }*/
 
-        protected virtual void OpenFileDialogueToSelectIcon(UIMouseEvent evt, UIView listeningElement)
+        protected virtual void OpenFileDialogueToSelectIcon(UIView listeningElement, UIMouseEvent evt)
         {
             ExtensionFilter[] extensions = [new ExtensionFilter("Image files", "png")];
 
