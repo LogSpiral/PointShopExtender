@@ -57,18 +57,23 @@ partial class PacketMakerUI
             // Packet.SetIconAndSave(texture, RootPath);
             Environment.SetIconAndSave(texture);
         }
-        protected override void OpenFileDialogueToSelectIcon(UIMouseEvent evt, UIView listeningElement)
+        protected override void OpenFileDialogueToSelectIcon(UIView listeningElement, UIMouseEvent evt)
         {
             if (string.IsNullOrEmpty(Environment.Name))
                 GiveANameHint();
             else
-                base.OpenFileDialogueToSelectIcon(evt, listeningElement);
+                base.OpenFileDialogueToSelectIcon(listeningElement, evt);
         }
 
         protected override void OnInitializeTextPanel(UIElementGroup textPanel)
         {
             ContentTextEditablePanel FileNamePanel = new("FileName", Environment.Name);
-            FileNamePanel.ContentText.OnInput += FileNameCommonCheck;
+            FileNamePanel.ContentText.ContentChanging += (sender, e) =>
+            {
+                var text = e.NewText;
+                FileNameCommonCheck(ref text);
+                return text;
+            };
             FileNamePanel.ContentText.EndTakingInput += (sender, arg) =>
             {
                 var current = arg.NewValue;
@@ -80,7 +85,7 @@ partial class PacketMakerUI
             FileNamePanel.Join(textPanel);
 
             ContentTextEditablePanel DisplayNamePanel = new("DisplayName", Environment.DisplayNameZH);
-            DisplayNamePanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Environment, elem);
+            DisplayNamePanel.GotFocus += (sender, evt) => ExtensionFileNameCheckCommon(Environment, sender);
             DisplayNamePanel.ContentText.EndTakingInput += (sender, arg) =>
             {
                 var current = arg.NewValue;
@@ -89,7 +94,7 @@ partial class PacketMakerUI
             DisplayNamePanel.Join(textPanel);
 
             ContentTextEditablePanel DisplayNameEnPanel = new("DisplayNameEn", Environment.DisplayNameEN);
-            DisplayNameEnPanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Environment, elem);
+            DisplayNameEnPanel.GotFocus += (sender, evt) => ExtensionFileNameCheckCommon(Environment, sender);
             DisplayNameEnPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
                 var current = arg.NewValue;
@@ -98,8 +103,13 @@ partial class PacketMakerUI
             DisplayNameEnPanel.Join(textPanel);
 
             ContentTextEditablePanel PriorityPanel = new("Priority", Environment.Priority.ToString());
-            PriorityPanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Environment, elem);
-            PriorityPanel.ContentText.OnInput += DigitsCommonCheck;
+            PriorityPanel.GotFocus += (sender, evt) => ExtensionFileNameCheckCommon(Environment, sender);
+            PriorityPanel.ContentText.ContentChanging += (sender, e) =>
+            {
+                var text = e.NewText;
+                DigitsCommonCheck(ref text);
+                return text;
+            };
             PriorityPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
                 var current = arg.NewValue;
@@ -111,8 +121,13 @@ partial class PacketMakerUI
             PriorityPanel.Join(textPanel);
 
             ContentTextEditablePanel ColorTextPanel = new("ColorText", Environment.ColorText);
-            ColorTextPanel.GotFocus += (evt, elem) => ExtensionFileNameCheckCommon(Environment, elem);
-            ColorTextPanel.ContentText.OnInput += ColorTextCommonCheck;
+            ColorTextPanel.GotFocus += (sender, evt) => ExtensionFileNameCheckCommon(Environment, sender);
+            ColorTextPanel.ContentText.ContentChanging += (sender, e) =>
+            {
+                var text = e.NewText;
+                ColorTextCommonCheck(ref text);
+                return text;
+            };
             ColorTextPanel.ContentText.MaxWordLength = 6;
             ColorTextPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
