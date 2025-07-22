@@ -102,13 +102,10 @@ public sealed class EnvironmentExtension : ExtensionWithInfo
 
     protected override void OnCreateNew() => Packet.EnvironmentExtensions.Add(this);
 
-    class ExtendedEnvironment : GameEnvironment
+    class ExtendedEnvironment(EnvironmentExtension extension) : GameEnvironment(PointShopExtender.Instance, extension.IconTexture, extension.Name, extension.Priority, extension.Color)
     {
-        public EnvironmentExtension EnvironmentExtension { get; set; }
-        public ExtendedEnvironment(EnvironmentExtension extension) : base(PointShopExtender.Instance, extension.IconTexture, extension.Name, extension.Priority, extension.Color)
-        {
-            EnvironmentExtension = extension;
-        }
-        public override string DisplayName => EnvironmentExtension.GetDisplayName();
+        Func<bool> ConditionFunc { get; init; } = extension.RealCondition.ToFunc();
+        public override string DisplayName => extension.GetDisplayName();
+        public override bool Condition(Player player) => ConditionFunc.Invoke();
     }
 }

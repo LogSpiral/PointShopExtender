@@ -87,14 +87,9 @@ public sealed class ConditionExtension : ExtensionWithInfo
         return "";
     }
 
-    class ExtendedUnlockCondition : SimpleUnlockCondition
+    class ExtendedUnlockCondition(ConditionExtension conditionExtension) : SimpleUnlockCondition(PointShopExtender.Instance, conditionExtension.Name, conditionExtension.IconTexture, conditionExtension.RealCondition.ToFunc())
     {
-        ConditionExtension ConditionExtension { get; set; }
-        public ExtendedUnlockCondition(ConditionExtension conditionExtension) : base(PointShopExtender.Instance, conditionExtension.Name, conditionExtension.IconTexture, conditionExtension.RealCondition.ToFunc())
-        {
-            ConditionExtension = conditionExtension;
-        }
-        public override string DisplayName => ConditionExtension.GetDisplayName();
-        public override string Description => ConditionExtension.GetDescription();
+        public override string DisplayName => conditionExtension.GetDisplayName();
+        public override string Description => conditionExtension.GetDescription();
     }
 }
