@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyUIFramework", "..\Silk
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PointShop", "..\PointShop\PointShop.csproj", "{5A6029B7-F373-E88A-F663-FB321180B20F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyUIAnalyzer", "..\SilkyUIAnalyzer\SilkyUIAnalyzer.csproj", "{7CF18AA7-776A-3D45-5158-EE7119B3706D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{5A6029B7-F373-E88A-F663-FB321180B20F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A6029B7-F373-E88A-F663-FB321180B20F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A6029B7-F373-E88A-F663-FB321180B20F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CF18AA7-776A-3D45-5158-EE7119B3706D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CF18AA7-776A-3D45-5158-EE7119B3706D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CF18AA7-776A-3D45-5158-EE7119B3706D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CF18AA7-776A-3D45-5158-EE7119B3706D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

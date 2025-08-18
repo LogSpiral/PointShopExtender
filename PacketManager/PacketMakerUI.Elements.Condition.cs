@@ -105,7 +105,7 @@ partial class PacketMakerUI
             DescriptionPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
                 var current = arg.NewValue;
-                Condition.SetDisplayNameEnAndSave(current);
+                Condition.SetDescriptionAndSave(current);
             };
             DescriptionPanel.Join(textPanel);
 
@@ -114,7 +114,7 @@ partial class PacketMakerUI
             DescriptionEnPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
                 var current = arg.NewValue;
-                Condition.SetDisplayNameEnAndSave(current);
+                Condition.SetDescriptionEnAndSave(current);
             };
             DescriptionEnPanel.Join(textPanel);
 
