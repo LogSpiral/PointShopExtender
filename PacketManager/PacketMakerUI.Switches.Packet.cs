@@ -26,7 +26,7 @@ partial class PacketMakerUI
         SUIScrollView itemList = new();
 
 
-        itemList.SetMargin(8f);
+        itemList.SetPadding(8f);
         itemList.SetWidth(0, 1f);
         itemList.SetLeft(0, 0, 0.5f);
         itemList.SetHeight(-40, 1f);
@@ -104,7 +104,7 @@ partial class PacketMakerUI
         container.LayoutType = LayoutType.Flexbox;
         container.FlexGrow = 1f;
         container.SetGap(8f);
-        container.SetMargin(8f);
+        container.SetPadding(8f);
         container.SetWidth(0, 1f);
         container.SetLeft(0, 0, 0.5f);
         container.SetHeight(0, 1f);

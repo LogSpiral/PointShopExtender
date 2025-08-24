@@ -291,7 +291,6 @@ partial class PacketMakerUI
         {
             SetWidth(0, 1);
             SetHeight(0, 40);
-            SetMargin(0);
             SetGap(0);
             BackgroundColor = Color.Black * .5f;
             BorderColor = Color.Black;
@@ -303,7 +302,6 @@ partial class PacketMakerUI
             SetScrollViewDirection(PathList, Direction.Horizontal);
             PathList.Container.FlexDirection = FlexDirection.Row;
             PathList.SetSize(0, 0, 1, 1);
-            PathList.SetMargin(0);
             PathList.Join(this);
         }
         public void AddNewPath(string Key, Action switchToPageAction)
@@ -399,7 +397,7 @@ partial class PacketMakerUI
             FlexDirection = FlexDirection.Column;
             FlexGrow = 1f;
             LayoutType = LayoutType.Custom;
-            SetMargin(4);
+            SetPadding(4);
             SetWidth(0, 0.325f);
             SetHeight(300f, 0);
 
@@ -461,7 +459,7 @@ partial class PacketMakerUI
             ImagePanel.SetHeight(0, 0.7f);
             ImagePanel.SetWidth(0, .3f);
             ImagePanel.SetLeft(0, 0.025f);
-            ImagePanel.SetMargin(4f);
+            ImagePanel.SetPadding(4f);
             ImagePanel.LeftMouseClick += OpenFileDialogueToSelectIcon;
             ImagePanel.Border = 2f;
             ImagePanel.BorderColor = Color.Black * .5f;

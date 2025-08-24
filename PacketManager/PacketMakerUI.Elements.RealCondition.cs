@@ -53,7 +53,7 @@ partial class PacketMakerUI
             SetHeight(0, 0.9f);
             SetTop(0, 0, 0.5f);
             SetWidth(0, 0.24f);
-            SetMargin(16f);
+            SetPadding(16f);
         }
         public override void OnLeftMouseClick(UIMouseEvent evt)
         {

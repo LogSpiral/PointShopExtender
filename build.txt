@@ -1,4 +1,4 @@
 displayName = 积分商店拓展器PointShopExtender
 author = 你需要一定积分才能知道
-version = 0.2.0.1
+version = 0.2.0.2
 modReferences = PointShop, SilkyUIFramework

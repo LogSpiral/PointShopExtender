@@ -29,7 +29,7 @@ partial class PacketMakerUI
         AddFilter();
 
         SUIScrollView itemList = new();
-        itemList.SetMargin(8f);
+        itemList.SetPadding(8f);
         itemList.SetWidth(0, 1f);
         itemList.SetLeft(0, 0, 0.5f);
         itemList.SetHeight(-40, 1f);
@@ -117,7 +117,7 @@ partial class PacketMakerUI
         PathTracker.AddNewPath("ShopItemBrowser", () => Instance.SwitchToSingleShopItemPage(simpleShopItem, appendCallback));
 
         SUIScrollView itemList = new();
-        itemList.SetMargin(8f);
+        itemList.SetPadding(8f);
         itemList.SetWidth(0, 1f);
         itemList.SetLeft(0, 0, 0.5f);
         itemList.SetHeight(-40, 1f);
@@ -179,7 +179,7 @@ partial class PacketMakerUI
         PathTracker.AddNewPath("UnlockConditionPage", () => Instance.SwitchToUnlockConditionPage(simpleShopItem));
 
         SUIScrollView itemList = new();
-        itemList.SetMargin(8f);
+        itemList.SetPadding(8f);
         itemList.SetWidth(0, 1f);
         itemList.SetLeft(0, 0, 0.5f);
         itemList.SetHeight(-40, 1f);

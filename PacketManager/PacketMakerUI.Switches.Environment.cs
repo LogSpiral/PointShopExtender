@@ -20,7 +20,7 @@ partial class PacketMakerUI
         PathTracker.AddNewPath("EnvironmentExtensionPage", Instance.SwitchToEnvironmentItemPage);
 
         SUIScrollView itemList = new();
-        itemList.SetMargin(8f);
+        itemList.SetPadding(8f);
         itemList.SetWidth(0, 1f);
         itemList.SetLeft(0, 0, 0.5f);
         itemList.SetHeight(-40, 1f);
