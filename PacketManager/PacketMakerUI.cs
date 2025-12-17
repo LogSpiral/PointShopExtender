@@ -6,9 +6,9 @@ using PointShop.UserInterfaces;
 using PointShopExtender.PacketData;
 using ReLogic.Content;
 using SilkyUIFramework;
+using SilkyUIFramework.Layout;
 using SilkyUIFramework.Attributes;
-using SilkyUIFramework.BasicComponents;
-using SilkyUIFramework.BasicElements;
+using SilkyUIFramework.Elements;
 using SilkyUIFramework.Extensions;
 using System;
 using Terraria;
@@ -20,7 +20,7 @@ using Terraria.Localization;
 namespace PointShopExtender.PacketManager;
 
 [RegisterUI("Vanilla: Radial Hotbars", $"{nameof(PointShopExtender)}: {nameof(PacketMakerUI)}")]
-public partial class PacketMakerUI : BasicBody
+public partial class PacketMakerUI : BaseBody
 {
     public override bool Enabled
     {
@@ -100,7 +100,7 @@ public partial class PacketMakerUI : BasicBody
         TitlePanel.BorderRadius = new Vector4(8, 8, 0, 0);
         TitlePanel.BackgroundColor = Color.Black * .25f;
         TitlePanel.Join(this);
-        TitlePanel.LayoutType = LayoutType.Custom;
+        // TitlePanel.LayoutType = LayoutType.Custom;
         var titleText = new UITextView();
         titleText.Text = GetLocalizedTextValue("Title");
         titleText.TextAlign = new(0, .5f);

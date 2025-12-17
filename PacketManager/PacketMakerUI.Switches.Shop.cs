@@ -2,7 +2,7 @@
 using PointShop.ShopSystem;
 using PointShopExtender.PacketData;
 using SilkyUIFramework;
-using SilkyUIFramework.BasicElements;
+using SilkyUIFramework.Elements;
 using SilkyUIFramework.Extensions;
 using System;
 using System.Collections.Generic;
@@ -42,7 +42,7 @@ partial class PacketMakerUI
             itemList.Container.RemoveAllChildren();
             itemList.ScrollBar.ScrollByTop();
             ShopItemElement createNew = new(new ShopExtension() { Packet = CurrentPack }, true);
-            itemList.Container.AppendChild(createNew);
+            itemList.Container.AddChild(createNew);
             HashSet<ShopItemElement> inSearchItem = [];
             HashSet<ShopItemElement> others = [];
             foreach (var shop in CurrentPack.ShopExtensions)
@@ -66,10 +66,10 @@ partial class PacketMakerUI
             foreach (var item in inSearchItem)
             {
                 item.BorderColor = SUIColor.Highlight;
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
             }
             foreach (var item in others)
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
         };
     }
 
@@ -157,7 +157,7 @@ partial class PacketMakerUI
             foreach (var item in inSearchItem)
             {
                 var itemPanel = new ShopSingleItemPanel(item, simpleShopItem, appendCallback) { BorderColor = SUIColor.Highlight };
-                itemList.Container.AppendChild(itemPanel);
+                itemList.Container.AddChild(itemPanel);
                 counter++;
                 if (counter >= 500) break;
             }
@@ -165,7 +165,7 @@ partial class PacketMakerUI
             {
                 if (counter >= 500) break;
                 counter++;
-                itemList.Container.AppendChild(new ShopSingleItemPanel(item, simpleShopItem, appendCallback));
+                itemList.Container.AddChild(new ShopSingleItemPanel(item, simpleShopItem, appendCallback));
             }
         };
     }
@@ -236,11 +236,11 @@ partial class PacketMakerUI
             foreach (var item in inSearchItem)
             {
                 item.BorderColor = SUIColor.Highlight;
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
             }
-            itemList.Container.AppendChild(new UnlockConditionItemPanel(default(ConditionExtension), simpleShopItem));
+            itemList.Container.AddChild(new UnlockConditionItemPanel(default(ConditionExtension), simpleShopItem));
             foreach (var item in others)
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
         };
     }
 }

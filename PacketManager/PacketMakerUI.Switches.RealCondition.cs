@@ -1,6 +1,6 @@
 ﻿using PointShopExtender.PacketData;
 using SilkyUIFramework;
-using SilkyUIFramework.BasicElements;
+using SilkyUIFramework.Elements;
 using SilkyUIFramework.Extensions;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,7 +35,7 @@ partial class PacketMakerUI
         for (int n = 0; n < 4; n++)
         {
             ConditionTypeElement conditionTypeElement = new((ConditionType)n, realCondition);
-            container.AppendChild(conditionTypeElement);
+            container.AddChild(conditionTypeElement);
         }
     }
 
@@ -86,10 +86,10 @@ partial class PacketMakerUI
             foreach (var item in inSearchItem)
             {
                 item.BorderColor = SUIColor.Highlight;
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
             }
             foreach (var item in others)
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
         };
 
     }
@@ -148,10 +148,10 @@ partial class PacketMakerUI
             foreach (var item in inSearchItem)
             {
                 item.BorderColor = SUIColor.Highlight;
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
             }
             foreach (var item in others)
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
         };
     }
 
@@ -217,10 +217,10 @@ partial class PacketMakerUI
             foreach (var item in inSearchItem)
             {
                 item.BorderColor = SUIColor.Highlight;
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
             }
             foreach (var item in others)
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
         };
     }
 }

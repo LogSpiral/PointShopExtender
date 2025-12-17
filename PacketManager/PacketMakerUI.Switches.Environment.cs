@@ -1,6 +1,6 @@
 ﻿using PointShopExtender.PacketData;
 using SilkyUIFramework;
-using SilkyUIFramework.BasicElements;
+using SilkyUIFramework.Elements;
 using SilkyUIFramework.Extensions;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +33,7 @@ partial class PacketMakerUI
             itemList.Container.RemoveAllChildren();
             itemList.ScrollBar.ScrollByTop();
             EnvironmentItemElement createNew = new(new EnvironmentExtension() { Packet = CurrentPack, Condition = "", RealCondition = new() }, true);
-            itemList.Container.AppendChild(createNew);
+            itemList.Container.AddChild(createNew);
             HashSet<EnvironmentItemElement> inSearchItem = [];
             HashSet<EnvironmentItemElement> others = [];
             foreach (var environment in CurrentPack.EnvironmentExtensions)
@@ -57,10 +57,10 @@ partial class PacketMakerUI
             foreach (var item in inSearchItem)
             {
                 item.BorderColor = SUIColor.Highlight;
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
             }
             foreach (var item in others)
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
         };
     }
 

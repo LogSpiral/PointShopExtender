@@ -2,9 +2,9 @@
 using PointShop.ShopSystem;
 using PointShopExtender.PacketData;
 using SilkyUIFramework;
-using SilkyUIFramework.BasicComponents;
-using SilkyUIFramework.BasicElements;
+using SilkyUIFramework.Elements;
 using SilkyUIFramework.Extensions;
+using SilkyUIFramework.Layout;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +13,6 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.Localization;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PointShopExtender.PacketManager;
 
@@ -53,7 +52,8 @@ partial class PacketMakerUI
     {
         if (string.IsNullOrEmpty(extension.Name))
         {
-            element.SilkyUI.SetFocus(null);
+            // element.SilkyUI.SetFocus(null);
+            PointShopExtender.UpdateFocusedElementCall();
             GiveANameHint();
         }
     }

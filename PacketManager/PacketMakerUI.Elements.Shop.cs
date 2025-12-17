@@ -7,8 +7,8 @@ using PointShop.UserInterfaces;
 using PointShopExtender.PacketData;
 using ReLogic.Content;
 using SilkyUIFramework;
-using SilkyUIFramework.BasicComponents;
-using SilkyUIFramework.BasicElements;
+using SilkyUIFramework.Layout;
+using SilkyUIFramework.Elements;
 using SilkyUIFramework.Extensions;
 using System;
 using System.Collections.Generic;
@@ -250,7 +250,7 @@ partial class PacketMakerUI
                 };
                 line = SUIDividingLine.Horizontal(SUIColor.Border * 0.75f).Join(MenuListScrollView.Container);
             }
-            line.Remove();
+            line.RemoveFromParent();
         }
         private static bool ShopItemFilters(Item item) => item.Name.Contains(Instance.SearchBox.Text.Trim());
 
@@ -276,7 +276,7 @@ partial class PacketMakerUI
             ShopItemTableScrollView.Container.RemoveAllChildren();
 
             var newItem = new SimpleShopItemGenerator();
-            ShopItemTableScrollView.Container.AppendChild(new SimpleShopItemPreviewElement(newItem, () => list.Add(newItem)));
+            ShopItemTableScrollView.Container.AddChild(new SimpleShopItemPreviewElement(newItem, () => list.Add(newItem)));
             foreach (var shopItem in list)
             {
                 if (!int.TryParse(shopItem.Type, out var id))
@@ -288,7 +288,7 @@ partial class PacketMakerUI
 
                 if (!ShopItemFilters(item)) continue;
 
-                ShopItemTableScrollView.Container.AppendChild(new SimpleShopItemPreviewElement(shopItem, null));
+                ShopItemTableScrollView.Container.AddChild(new SimpleShopItemPreviewElement(shopItem, null));
             }
         }
     }
@@ -342,7 +342,8 @@ partial class PacketMakerUI
             {
                 if (string.IsNullOrEmpty(ShopItem.Type))
                 {
-                    sender.SilkyUI.SetFocus(null);
+                    // sender.SilkyUI.SetFocus(null);
+                    PointShopExtender.UpdateFocusedElementCall();
                     ChooseAItemHint();
                     return;
                 }
@@ -374,7 +375,8 @@ partial class PacketMakerUI
             {
                 if (string.IsNullOrEmpty(ShopItem.Type))
                 {
-                    sender.SilkyUI.SetFocus(null);
+                    // sender.SilkyUI.SetFocus(null);
+                    PointShopExtender.UpdateFocusedElementCall();
                     ChooseAItemHint();
                     return;
                 }

@@ -1,6 +1,6 @@
 ﻿using PointShopExtender.PacketData;
 using SilkyUIFramework;
-using SilkyUIFramework.BasicElements;
+using SilkyUIFramework.Elements;
 using SilkyUIFramework.Extensions;
 using System.Collections.Generic;
 using System.IO;
@@ -40,7 +40,7 @@ partial class PacketMakerUI
             itemList.ScrollBar.ScrollByTop();
 
             PacketItemElement createNew = new(new ExtensionPack(), true);
-            itemList.Container.AppendChild(createNew);
+            itemList.Container.AddChild(createNew);
 
 
             HashSet<PacketItemElement> inSearchItem = [];
@@ -68,10 +68,10 @@ partial class PacketMakerUI
             foreach (var item in inSearchItem)
             {
                 item.BorderColor = SUIColor.Highlight;
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
             }
             foreach (var item in others)
-                itemList.Container.AppendChild(item);
+                itemList.Container.AddChild(item);
         };
     }
 
@@ -113,7 +113,7 @@ partial class PacketMakerUI
         for (int n = 0; n < 3; n++)
         {
             BridgeElement bridgeElement = new((BridgeState)n);
-            container.AppendChild(bridgeElement);
+            container.AddChild(bridgeElement);
         }
 
 

@@ -2,7 +2,7 @@
 using PointShopExtender.PacketData;
 using ReLogic.Content;
 using SilkyUIFramework;
-using SilkyUIFramework.BasicElements;
+using SilkyUIFramework.Elements;
 using SilkyUIFramework.Extensions;
 using System.IO;
 using System.Linq;
@@ -128,7 +128,7 @@ partial class PacketMakerUI
                 ColorTextCommonCheck(ref text);
                 return text;
             };
-            ColorTextPanel.ContentText.MaxWordLength = 6;
+            ColorTextPanel.ContentText.MaximumCharacters = 6;
             ColorTextPanel.ContentText.EndTakingInput += (sender, arg) =>
             {
                 var current = arg.NewValue;

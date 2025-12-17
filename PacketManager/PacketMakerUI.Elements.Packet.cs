@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PointShopExtender.PacketData;
 using ReLogic.Content;
 using SilkyUIFramework;
-using SilkyUIFramework.BasicElements;
+using SilkyUIFramework.Elements;
 using SilkyUIFramework.Extensions;
 using System;
 using System.Collections.Generic;

@@ -5,13 +5,13 @@ using PointShop.ShopSystem;
 using PointShopExtender.PacketData;
 using ReLogic.Content;
 using SilkyUIFramework;
-using SilkyUIFramework.BasicComponents;
-using SilkyUIFramework.BasicElements;
+using SilkyUIFramework.Elements;
 using SilkyUIFramework.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SilkyUIFramework.Layout;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,7 +33,7 @@ partial class PacketMakerUI
         {
             SetWidth(0, 1);
             SetHeight(40, 0);
-            LayoutType = LayoutType.Custom;
+            // LayoutType = LayoutType.Custom;
             SetGap(0);
             var nameContainer = new UIElementGroup();
             nameContainer.SetWidth(0, .335f);
@@ -56,7 +56,8 @@ partial class PacketMakerUI
             contentContainer.GotFocus += (sender, evt) =>
             {
                 if (evt.Source != sender) return;
-                contentContainer.SilkyUI.SetFocus(ContentText);
+                PointShopExtender.UpdateFocusedElementCall(ContentText);
+                // contentContainer.SilkyUI.SetFocus(ContentText);
             };
 
             ContentText = new SUIEditText();
@@ -87,7 +88,7 @@ partial class PacketMakerUI
         {
             SetWidth(0, 1);
             SetHeight(40, 0);
-            LayoutType = LayoutType.Custom;
+            // LayoutType = LayoutType.Custom;
             var nameContainer = new UIElementGroup();
             nameContainer.SetWidth(0, .335f);
             nameContainer.SetHeight(40);
@@ -178,7 +179,7 @@ partial class PacketMakerUI
         {
             SetWidth(0, 1);
             SetHeight(40, 0);
-            LayoutType = LayoutType.Custom;
+            // LayoutType = LayoutType.Custom;
             var nameContainer = new UIElementGroup();
             nameContainer.SetWidth(0, 1f);
             nameContainer.SetHeight(40);
@@ -231,7 +232,7 @@ partial class PacketMakerUI
             }
             SetWidth(0, 1);
             SetHeight(40, 0);
-            LayoutType = LayoutType.Custom;
+            // LayoutType = LayoutType.Custom;
             SetGap(0);
             var nameContainer = new UIElementGroup();
             nameContainer.SetWidth(0, .335f);
@@ -396,7 +397,7 @@ partial class PacketMakerUI
             BorderRadius = new Vector4(8f);
             FlexDirection = FlexDirection.Column;
             FlexGrow = 1f;
-            LayoutType = LayoutType.Custom;
+            // LayoutType = LayoutType.Custom;
             SetPadding(4);
             SetWidth(0, 0.325f);
             SetHeight(300f, 0);
@@ -443,7 +444,7 @@ partial class PacketMakerUI
             SetWidth(0, 1f);
             SetHeight(0, 1f);
 
-            LayoutType = LayoutType.Custom;
+            // LayoutType = LayoutType.Custom;
 
             InitalizeImage();
 
