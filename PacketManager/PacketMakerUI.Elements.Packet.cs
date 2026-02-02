@@ -55,7 +55,6 @@ partial class PacketMakerUI
                     PointShopExtenderSystem.ExtensionPacks.RemoveWhere(pak => pak.Name == pack.Name);
                 };
             button.SetTop(0, 0, 0);
-            button.SetLeft(0, 0, 1);
             button.SetSize(32, 32);
             button.Join(this);
         }
@@ -110,11 +109,11 @@ partial class PacketMakerUI
 
             BackgroundColor = Color.Lerp(BackgroundColor, c, 0.25f);
 
-
         }
 
         public override void OnMouseEnter(UIMouseEvent evt)
         {
+            base.OnMouseEnter(evt);
             if (CreateNew) return;
             if (evt.Source != this) return;
             string msg = "";
@@ -134,14 +133,13 @@ partial class PacketMakerUI
             }
             if (!string.IsNullOrEmpty(msg))
                 MouseHoverInfo = msg;
-            base.OnMouseEnter(evt);
         }
         public override void OnMouseLeave(UIMouseEvent evt)
         {
+            base.OnMouseLeave(evt);
             if (CreateNew) return;
             if (evt.Source != this) return;
             MouseHoverInfo = "";
-            base.OnMouseLeave(evt);
         }
     }
 
@@ -157,8 +155,7 @@ partial class PacketMakerUI
             BuildPage();
             Image.Texture2D = Packet.Icon;
             ImagePanel.SetSize(280, 280, 0, 0);
-            ImagePanel.SetTop(4, 0.05f, 0);
-            ImagePanel.SetLeft(10, 0, 0);
+            ImagePanel.SetTop(0, 0, 0.5f);
         }
         protected override void OnSetIcon(Asset<Texture2D> texture)
         {

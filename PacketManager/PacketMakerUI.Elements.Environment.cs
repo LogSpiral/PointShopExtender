@@ -49,8 +49,7 @@ partial class PacketMakerUI
             Image.Texture2D = environment.IconTexture;
 
             ImagePanel.SetSize(280, 280, 0, 0);
-            ImagePanel.SetTop(4, 0.05f, 0);
-            ImagePanel.SetLeft(10, 0, 0);
+            ImagePanel.SetTop(0,0,0.5f);
         }
         protected override void OnSetIcon(Asset<Texture2D> texture)
         {

@@ -34,10 +34,10 @@ partial class PacketMakerUI
             SetWidth(0, 1);
             SetHeight(40, 0);
             // LayoutType = LayoutType.Custom;
-            SetGap(0);
+            SetGap(-2);
             var nameContainer = new UIElementGroup();
-            nameContainer.SetWidth(0, .335f);
-            nameContainer.SetHeight(40);
+            nameContainer.FlexGrow = 1;
+            nameContainer.SetHeight(0, 1);
             nameContainer.BackgroundColor = Color.Black * .35f;
             nameContainer.Border = 2f;
             nameContainer.BorderColor = Color.Black;
@@ -47,9 +47,8 @@ partial class PacketMakerUI
             ContentName.SetLeft(0, 0, 0.5f);
 
             var contentContainer = new UIElementGroup();
-            contentContainer.SetWidth(0, .67f);
-            contentContainer.SetLeft(0, 0, 1);
-            contentContainer.SetHeight(40);
+            contentContainer.FlexGrow = 2;
+            contentContainer.SetHeight(0, 1);
             contentContainer.BackgroundColor = Color.Black * .25f;
             contentContainer.Border = 2f;
             contentContainer.BorderColor = Color.Black;
@@ -88,10 +87,11 @@ partial class PacketMakerUI
         {
             SetWidth(0, 1);
             SetHeight(40, 0);
+            SetGap(-2);
             // LayoutType = LayoutType.Custom;
             var nameContainer = new UIElementGroup();
-            nameContainer.SetWidth(0, .335f);
-            nameContainer.SetHeight(40);
+            nameContainer.FlexGrow = 1;
+            nameContainer.SetHeight(0,1);
             nameContainer.BackgroundColor = Color.Black * .35f;
             nameContainer.Border = 2f;
             nameContainer.BorderColor = Color.Black;
@@ -111,9 +111,8 @@ partial class PacketMakerUI
             ContentName.SetLeft(0, 0, 0.5f);
 
             var contentContainer = new UIElementGroup();
-            contentContainer.SetWidth(0, .67f);
-            contentContainer.SetLeft(0, 0, 1);
-            contentContainer.SetHeight(40);
+            contentContainer.FlexGrow = 2;
+            contentContainer.SetHeight(0,1);
             contentContainer.BackgroundColor = Color.Black * .25f;
             contentContainer.Border = 2f;
             contentContainer.BorderColor = Color.Black;
@@ -182,7 +181,7 @@ partial class PacketMakerUI
             // LayoutType = LayoutType.Custom;
             var nameContainer = new UIElementGroup();
             nameContainer.SetWidth(0, 1f);
-            nameContainer.SetHeight(40);
+            nameContainer.SetHeight(0, 1);
             nameContainer.BackgroundColor = Color.Black * .35f;
             nameContainer.Border = 2f;
             nameContainer.BorderColor = Color.Black;
@@ -233,10 +232,10 @@ partial class PacketMakerUI
             SetWidth(0, 1);
             SetHeight(40, 0);
             // LayoutType = LayoutType.Custom;
-            SetGap(0);
+            SetGap(-2);
             var nameContainer = new UIElementGroup();
-            nameContainer.SetWidth(0, .335f);
-            nameContainer.SetHeight(40);
+            nameContainer.FlexGrow = 1;
+            nameContainer.SetHeight(0,1);
             nameContainer.BackgroundColor = Color.Black * .35f;
             nameContainer.Border = 2f;
             nameContainer.BorderColor = Color.Black;
@@ -247,9 +246,8 @@ partial class PacketMakerUI
             ConditionIcon.ImageAlign = new Vector2(.5f);
 
             var contentContainer = new UIElementGroup();
-            contentContainer.SetWidth(0, .67f);
-            contentContainer.SetLeft(0, 0, 1);
-            contentContainer.SetHeight(40);
+            contentContainer.FlexGrow = 2;
+            contentContainer.SetHeight(0,1);
             contentContainer.BackgroundColor = Color.Black * .25f;
             contentContainer.Border = 2f;
             contentContainer.BorderColor = Color.Black;
@@ -291,7 +289,7 @@ partial class PacketMakerUI
         public PathTrackerPanel()
         {
             SetWidth(0, 1);
-            SetHeight(0, 40);
+            SetHeight(48, 0);
             SetGap(0);
             BackgroundColor = Color.Black * .5f;
             BorderColor = Color.Black;
@@ -302,7 +300,9 @@ partial class PacketMakerUI
             PathList = new(Direction.Horizontal);
             SetScrollViewDirection(PathList, Direction.Horizontal);
             PathList.Container.FlexDirection = FlexDirection.Row;
-            PathList.SetSize(0, 0, 1, 1);
+            PathList.SetSize(-8, -8, 1, 1);
+            PathList.SetLeft(0, 0, 0.5f);
+            PathList.Margin = new Margin(4, 0, 4, 8);
             PathList.Join(this);
         }
         public void AddNewPath(string Key, Action switchToPageAction)
@@ -310,7 +310,6 @@ partial class PacketMakerUI
             UITextView arrow = new UITextView();
             arrow.Text = ">";
             arrow.SetSize(30, 40, 0, 0);
-            arrow.SetTop(-5, 0);
             arrow.Join(PathList.Container);
             UITextView textView = new UITextView();
             textView.Text = GetLocalizedTextValue(Key);
@@ -342,7 +341,6 @@ partial class PacketMakerUI
             };
             var pixelWidth = FontAssets.MouseText.Value.MeasureString(textView.Text).X;
             textView.SetSize(pixelWidth, 40, 0, 0);
-            textView.SetTop(-5, 0);
             textView.Join(PathList.Container);
             PathTexts.Add(textView);
             BackActions.Add(switchToPageAction);
@@ -395,7 +393,8 @@ partial class PacketMakerUI
 
             Border = 2f;
             BorderRadius = new Vector4(8f);
-            FlexDirection = FlexDirection.Column;
+            FlexDirection = FlexDirection.Row;
+            CrossAlignment = CrossAlignment.Center;
             FlexGrow = 1f;
             // LayoutType = LayoutType.Custom;
             SetPadding(4);
@@ -403,21 +402,29 @@ partial class PacketMakerUI
             SetHeight(300f, 0);
 
 
+            var mask = new UIElementGroup()
+            {
+                FlexDirection = FlexDirection.Column,
+                CrossAlignment = CrossAlignment.Center,
+                MainAlignment = MainAlignment.End
+            };
+            mask.SetHeight(0, 1);
+            mask.FlexGrow = 1;
+            mask.IgnoreMouseInteraction = true;
+            mask.Join(this);
             Icon = new SUIImage(CreateNewIcon);
-            Icon.SetTop(0, 0, 0.5f);
-            Icon.SetLeft(0, 0, 0.5f);
             Icon.ImageAlign = new Vector2(.5f);
-
+            Icon.FlexGrow = 1;
+            Icon.FitHeight = false;
+            Icon.IgnoreMouseInteraction = true;
             Text = new UITextView();
             Text.Text = GetLocalizedTextValue("CreateNew");
             Text.WordWrap = true;
-            Text.SetTop(0, -0.1f, 1f);
-            Text.SetLeft(0, 0, 0.5f);
             Text.SetWidth(0, 0.8f);
-            Text.SetMaxWidth(0, 0.8f);
+            Text.IgnoreMouseInteraction = true;
 
-            Icon.Join(this);
-            Text.Join(this);
+            Icon.Join(mask);
+            Text.Join(mask);
         }
         protected override void UpdateStatus(GameTime gameTime)
         {
@@ -443,7 +450,8 @@ partial class PacketMakerUI
         {
             SetWidth(0, 1f);
             SetHeight(0, 1f);
-
+            FlexDirection = FlexDirection.Row;
+            MainAlignment = MainAlignment.SpaceBetween;
             // LayoutType = LayoutType.Custom;
 
             InitalizeImage();
@@ -456,11 +464,10 @@ partial class PacketMakerUI
         void InitalizeImage()
         {
             ImagePanel = new UIElementGroup();
-            ImagePanel.SetTop(0, 0, 0.5f);
             ImagePanel.SetHeight(0, 0.7f);
-            ImagePanel.SetWidth(0, .3f);
-            ImagePanel.SetLeft(0, 0.025f);
-            ImagePanel.SetPadding(4f);
+            ImagePanel.SetWidth(0, 0.3f);
+            ImagePanel.SetTop(0, 0, 0.5f);
+            ImagePanel.SetMargin(8f);
             ImagePanel.LeftMouseClick += OpenFileDialogueToSelectIcon;
             ImagePanel.Border = 2f;
             ImagePanel.BorderColor = Color.Black * .5f;
@@ -486,15 +493,15 @@ partial class PacketMakerUI
         {
             TextPanel = new();
             TextPanel.SetWidth(0, 0.60f);
-            TextPanel.SetLeft(0, -0.025f, 1);
             TextPanel.SetHeight(0, 0.9f);
-            TextPanel.SetTop(0, 0.05f);
-            TextPanel.SetMargin(4);
+            TextPanel.SetMargin(16, 8);
+            TextPanel.SetTop(0, 0, 0.5f);
             //TextPanel.BackgroundColor = Color.Black * .5f;
             TextPanel.Join(this);
             TextPanel.LayoutType = LayoutType.Flexbox;
             TextPanel.FlexDirection = FlexDirection.Column;
             TextPanel.SetGap(8f);
+            TextPanel.Padding = new(0, 4, 0, 0);
             OnInitializeTextPanel(TextPanel);
         }
 

@@ -29,7 +29,7 @@ partial class PacketMakerUI
         itemList.SetPadding(8f);
         itemList.SetWidth(0, 1f);
         itemList.SetLeft(0, 0, 0.5f);
-        itemList.SetHeight(-40, 1f);
+        itemList.FlexGrow = 1;
         itemList.Join(MainPanel);
 
         UpdateMainPanel = () =>

@@ -69,8 +69,8 @@ partial class PacketMakerUI
         PathTimer.Update(gameTime);
         if (!PathTimer.IsCompleted)
         {
-            PathTracker.SetHeight(40 * PathTimer.Schedule);
-            PathTracker.SetMaxHeight(40 * PathTimer.Schedule);
+            PathTracker.SetHeight(48 * PathTimer.Schedule);
+            PathTracker.SetMaxHeight(48 * PathTimer.Schedule);
             PathTracker.BackgroundColor = PathTracker.BorderColor = Color.Black * (.5f * PathTimer.Schedule);
 
             PathTracker.PathList.ScrollBar.BarColor = PathTimer.IsForward ? (Color.Black * .2f, Color.Black * .3f) : (default, default);

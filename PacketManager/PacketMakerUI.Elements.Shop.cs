@@ -7,13 +7,14 @@ using PointShop.UserInterfaces;
 using PointShopExtender.PacketData;
 using ReLogic.Content;
 using SilkyUIFramework;
-using SilkyUIFramework.Layout;
 using SilkyUIFramework.Elements;
 using SilkyUIFramework.Extensions;
+using SilkyUIFramework.Layout;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
+using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -60,9 +61,9 @@ partial class PacketMakerUI
             Image.Texture2D = shop.IconTexture;
 
             ImagePanel.SetSize(90, 90, 0, 0);
-            ImagePanel.SetLeft(20, 0, 0);
-            ImagePanel.SetTop(0, 0.1f, 0);
-            TextPanel.SetWidth(-70, 0.9f);
+            ImagePanel.SetTop(0, 0, 0.5f);
+            TextPanel.FlexGrow = 1;
+            // TextPanel.SetWidth(-70, 0.9f);
         }
         protected override void OnSetIcon(Asset<Texture2D> texture)
         {
@@ -326,9 +327,8 @@ partial class PacketMakerUI
             ItemSlot.ItemInteractive = false;
 
             ImagePanel.SetSize(135, 135, 0, 0);
-            ImagePanel.SetLeft(20, 0, 0);
-            ImagePanel.SetTop(0, 0.1f, 0);
-            TextPanel.SetWidth(-120, 0.9f);
+            ImagePanel.SetTop(0, 0, 0.5f);
+            TextPanel.FlexGrow = 1;
         }
         protected override void OpenFileDialogueToSelectIcon(UIView listeningElement, UIMouseEvent evt)
         {
@@ -413,31 +413,11 @@ partial class PacketMakerUI
         }
     }
 
-    class ShopSingleItemPanel : SingleItemPanel
+    class ShopSingleItemPanel : UIElementGroup
     {
         SUIItemSlot ItemSlot { get; set; }
         SimpleShopItemGenerator SimpleShopItem { get; set; }
         Action AppendCallBack { get; set; }
-        public ShopSingleItemPanel(Item item, SimpleShopItemGenerator simpleShopItem, Action appendCallBack)
-        {
-            AppendCallBack = appendCallBack;
-            SimpleShopItem = simpleShopItem;
-            // SetIcon(TextureAssets.Item[item.type]);
-            ItemSlot = new SUIItemSlot();
-            ItemSlot.SetLeft(0, 0, 0.5f);
-            ItemSlot.SetTop(0, 0, 0.5f);
-            ItemSlot.Item = item;
-            ItemSlot.ItemAlign = new(.5f);
-            ItemSlot.Join(this);
-            ItemSlot.ItemInteractive = false;
-
-            SetIcon(TextureAssets.Item[ItemID.None]);
-            SetText(item.Name);
-
-            SetWidth(0, 0.19f);
-            SetHeight(150f, 0);
-
-        }
 
         public override void OnLeftMouseClick(UIMouseEvent evt)
         {
@@ -449,6 +429,78 @@ partial class PacketMakerUI
             AppendCallBack?.Invoke();
             Instance.PathTracker.ReturnToPreviousPage();
             base.OnLeftMouseClick(evt);
+        }
+
+        UITextView Text { get; set; }
+        protected void SetText(string text)
+        {
+            Text?.Text = text;
+        }
+        public ShopSingleItemPanel(Item item, SimpleShopItemGenerator simpleShopItem, Action appendCallBack)
+        {
+            BackgroundColor = Color.Black * .25f;
+            BorderColor = Color.Black * .5f;
+
+            Border = 2f;
+            BorderRadius = new Vector4(8f);
+            FlexDirection = FlexDirection.Row;
+            CrossAlignment = CrossAlignment.Center;
+            FlexGrow = 1f;
+            // LayoutType = LayoutType.Custom;
+            SetPadding(4);
+            SetWidth(0, 0.325f);
+            SetHeight(300f, 0);
+
+
+            var mask = new UIElementGroup()
+            {
+                FlexDirection = FlexDirection.Column,
+                CrossAlignment = CrossAlignment.Center,
+                MainAlignment = MainAlignment.End
+            };
+            mask.SetHeight(0, 1);
+            mask.FlexGrow = 1;
+            mask.IgnoreMouseInteraction = true;
+            mask.Join(this);
+            Text = new UITextView();
+            Text.Text = GetLocalizedTextValue("CreateNew");
+            Text.WordWrap = true;
+            Text.SetWidth(0, 0.8f);
+            Text.IgnoreMouseInteraction = true;
+
+
+
+
+            AppendCallBack = appendCallBack;
+            SimpleShopItem = simpleShopItem;
+            // SetIcon(TextureAssets.Item[item.type]);
+            ItemSlot = new SUIItemSlot();
+            ItemSlot.FlexGrow = 1;
+            ItemSlot.FitHeight = false;
+            ItemSlot.IgnoreMouseInteraction = true;
+            ItemSlot.Item = item;
+            ItemSlot.ItemAlign = new(.5f);
+            ItemSlot.ItemInteractive = false;
+            ItemSlot.Join(mask);
+            ItemSlot.Border = 0;
+            ItemSlot.BorderColor = Color.Transparent;
+            ItemSlot.BackgroundColor = Color.Transparent;
+            Text.Join(mask);
+            SetText(item.Name);
+
+            SetWidth(0, 0.19f);
+            SetHeight(150f, 0);
+        }
+        protected override void UpdateStatus(GameTime gameTime)
+        {
+            HandleMouseOverColorPanel(this);
+            base.UpdateStatus(gameTime);
+        }
+
+        public override void OnMouseEnter(UIMouseEvent evt)
+        {
+            SoundEngine.PlaySound(SoundID.MenuTick);
+            base.OnMouseEnter(evt);
         }
     }
 

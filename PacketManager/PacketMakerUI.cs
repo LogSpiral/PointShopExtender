@@ -70,6 +70,7 @@ public partial class PacketMakerUI : BaseBody
     #region 开关 初始化
     public static void Open()
     {
+        Instance?.OnInitialize();
         Active = true;
         IsChinese = Language.ActiveCulture == GameCulture.FromCultureName(GameCulture.CultureName.Chinese);
         SoundEngine.PlaySound(SoundID.MenuOpen);
@@ -85,22 +86,27 @@ public partial class PacketMakerUI : BaseBody
 
     protected override void OnInitialize()
     {
+        RemoveAllChildren();
         Instance = this;
         FitWidth = true;
         FitHeight = true;
         BorderRadius = new Vector4(8);
         BackgroundColor = SUIColor.Background * .75f;
         BorderColor = SUIColor.Border;
+        Border = 2;
+        CrossAlignment = CrossAlignment.Stretch;
+        OverflowHidden = true;
         SetGap(0);
         SetTop(0, .5f, 0);
         SetLeft(0, .5f, 0);
         #region TitlePanel
         TitlePanel = new SUIDraggableView(this);
-        TitlePanel.SetSize(700, 40, 0);
+        TitlePanel.SetHeight(40);
+        TitlePanel.SetLeft(0, 0, 0.5f);
         TitlePanel.BorderRadius = new Vector4(8, 8, 0, 0);
         TitlePanel.BackgroundColor = Color.Black * .25f;
+        TitlePanel.MainAlignment = MainAlignment.SpaceBetween;
         TitlePanel.Join(this);
-        // TitlePanel.LayoutType = LayoutType.Custom;
         var titleText = new UITextView();
         titleText.Text = GetLocalizedTextValue("Title");
         titleText.TextAlign = new(0, .5f);
@@ -108,6 +114,7 @@ public partial class PacketMakerUI : BaseBody
         titleText.SetSize(0, 0, .25f, 1f);
         titleText.SetPadding(12, 0);
         titleText.UseDeathText();
+        titleText.SetTop(0, 0, 0.5f);
         titleText.Join(TitlePanel);
         titleText.LeftMouseClick += delegate
         {
@@ -125,16 +132,21 @@ public partial class PacketMakerUI : BaseBody
         {
             MouseHoverInfo = "";
         };
-        var ReturnButton = FastImageButton(ModAsset.ReturnBack);
 
-        ReturnButton.SetLeft(FontAssets.DeathText.Value.MeasureString(titleText.Text).X * .45f + 20, 0, 0);
+        var buttonContainer = new UIElementGroup();
+        buttonContainer.FitWidth = true;
+        buttonContainer.SetHeight(0, 1);
+        buttonContainer.Join(TitlePanel);
+
+
+        var ReturnButton = FastImageButton(ModAsset.ReturnBack);
         ReturnButton.LeftMouseClick += delegate { PathTracker.ReturnToPreviousPage(); };
         ReturnButton.OnUpdate += delegate
         {
             ReturnButton.IgnoreMouseInteraction = PathTracker.InMenu;
             ReturnButton.ImageColor = ReturnButton.HoverTimer.Lerp(Color.White * .5f, Color.White) * (PathTracker.InMenu ? .5f : 1f);
         };
-        ReturnButton.Join(TitlePanel);
+        ReturnButton.Join(buttonContainer);
         ReturnButton.MouseEnter += delegate
         {
             MouseHoverInfo = GetLocalizedTextValue("ReturnToLast");
@@ -150,11 +162,14 @@ public partial class PacketMakerUI : BaseBody
             CrossBorderHoverColor = SUIColor.Highlight,
             CrossBackgroundHoverColor = SUIColor.Warn,
             BoxSizing = BoxSizing.Content,
-        }.Join(TitlePanel);
+        }.Join(buttonContainer);
         SUICross.SetSize(24, 0, 0f, 1f);
         SUICross.SetPadding(12f, 0f);
-        SUICross.SetLeft(0, 0, 1);
         SUICross.LeftMouseDown += delegate { Close(); };
+
+
+
+
         SUIDividingLine.Horizontal(Color.Black * 0.75f).Join(this);
 
         #endregion
@@ -164,6 +179,7 @@ public partial class PacketMakerUI : BaseBody
         PathTracker.Join(this);
         PathTracker.PathList.ScrollBar.BackgroundColor = default;
         PathTracker.PathList.ScrollBar.BarColor = default;
+        PathTracker.CrossAlignment = CrossAlignment.Center;
 
 
         #region MainPanel
@@ -171,9 +187,7 @@ public partial class PacketMakerUI : BaseBody
         MainPanel.SetSize(700, 450);
         CurrentTargetSize = new(700, 450);
         LastTargetSize = new(700, 450);
-        MainPanel.BorderRadius = new Vector4(16);
         MainPanel.Join(this);
-        MainPanel.BackgroundColor = default;
         InitializeFilter(MainPanel);
         #endregion
 
@@ -199,6 +213,7 @@ public partial class PacketMakerUI : BaseBody
         {
             MouseHoverInfo = "";
         };
+        PathTimer.ImmediateReverseCompleted();
         SUIImage PathImage = FastImageButton(TextureAssets.CraftToggle[3]);
         PathImage.LeftMouseClick += delegate
         {
@@ -246,15 +261,16 @@ public partial class PacketMakerUI : BaseBody
     {
         var searchBarContainer = new UIElementGroup
         {
-            LayoutType = LayoutType.Flexbox,
             MainAlignment = MainAlignment.Start,
             CrossAlignment = CrossAlignment.Center,
             CrossContentAlignment = CrossContentAlignment.Center,
             Gap = new Vector2(4),
-            Padding = new Margin(4f, 4f, 4f, 0f),
-        }.Join(Container);
-        searchBarContainer.SetWidth(0f, 1f);
+            Margin = new Margin(8, 8, 8, 0),
+        };
+        searchBarContainer.SetLeft(0, 0, 0.5f);
+        searchBarContainer.SetWidth(-16f, 1f);
         searchBarContainer.SetHeight(36f, 0f);
+        searchBarContainer.Join(Container);
         SearchBarPanel = searchBarContainer;
         var searchBar = new UIElementGroup
         {
