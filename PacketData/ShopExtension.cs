@@ -1,9 +1,11 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using PointShop.Helpers;
 using PointShop.Registrar;
 using ReLogic.Content;
 using System.Collections.Generic;
 using System.IO;
 using Terraria;
+using Terraria.ModLoader;
 
 namespace PointShopExtender.PacketData;
 
@@ -24,7 +26,7 @@ public class ShopExtension : ExtensionBase
     {
         var result = new ShopExtension();
         var fileContent = File.ReadAllText(file);
-        result.SimpleShopData = ShopItemsRegistrar.ConvertYamlStringToShopData(fileContent);
+        result.SimpleShopData = FileHelper.DeserializeYaml<SimpleShopData>(fileContent);
         result.Name = Path.GetFileNameWithoutExtension(file);
 
         var iconPath = Path.Combine(folderPath, result.Name + "_Icon.png");

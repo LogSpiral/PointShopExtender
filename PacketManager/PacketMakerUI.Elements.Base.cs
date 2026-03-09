@@ -419,7 +419,7 @@ partial class PacketMakerUI
             Icon.IgnoreMouseInteraction = true;
             Text = new UITextView();
             Text.Text = GetLocalizedTextValue("CreateNew");
-            Text.WordWrap = true;
+            Text.WordWrap = false;
             Text.SetWidth(0, 0.8f);
             Text.IgnoreMouseInteraction = true;
 

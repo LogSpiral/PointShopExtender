@@ -16,6 +16,7 @@ using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.Localization;
+using PointShop.Helpers;
 
 namespace PointShopExtender.PacketManager;
 
@@ -155,14 +156,20 @@ public partial class PacketMakerUI : BaseBody
         {
             MouseHoverInfo = "";
         };
-        var SUICross = new SUICross(SUIColor.Warn * 0.75f, SUIColor.Border * 0.75f)
+        var SUICross = new SUICross()
         {
             CrossSize = 22f,
-            CrossRounded = 3.5f,
-            CrossBorderHoverColor = SUIColor.Highlight,
-            CrossBackgroundHoverColor = SUIColor.Warn,
+            CrossBorderRadius = 3.5f,
             BoxSizing = BoxSizing.Content,
         }.Join(buttonContainer);
+        SUICross.CrossBackgroundColor = SUIColor.Warn * .75f;
+        SUICross.CrossBorderColor = SUIColor.Border * .75f;
+        SUICross.OnUpdateStatus += delegate
+        {
+            if (SUICross.HoverTimer.IsCompleted) return;
+            SUICross.CrossBackgroundColor = SUICross.HoverTimer.Lerp(SUIColor.Warn * 0.75f, SUIColor.Warn);
+            SUICross.CrossBorderColor = SUICross.HoverTimer.Lerp(SUIColor.Border * 0.75f, SUIColor.Highlight);
+        };
         SUICross.SetSize(24, 0, 0f, 1f);
         SUICross.SetPadding(12f, 0f);
         SUICross.LeftMouseDown += delegate { Close(); };
